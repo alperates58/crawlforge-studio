@@ -1,0 +1,49 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  role         String    @default("operator") // admin, operator, reviewer
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+}
+
+model Project {
+  id           String    @id @default(uuid())
+  name         String
+  description  String?
+  targetDomain String?
+  category     String?
+  status       String    @default("active")
+  createdBy    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  bots         Bot[]
+}
+
+model Bot {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  name        String
+  description String?
+  startUrl    String?
+  stepsJson   String?   // JSON string
+  status      String    @default("draft")
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}

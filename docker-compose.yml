@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: crawlforge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crawlforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-this-password}
+      POSTGRES_DB: ${POSTGRES_DB:-crawlforge}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - crawlforge_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: crawlforge-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - crawlforge_net
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: crawlforge-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - crawlforge_net
+    ports:
+      - "3001:3001"
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: crawlforge-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - crawlforge_net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: crawlforge-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - api
+    networks:
+      - crawlforge_net
+    ports:
+      - "3005:3000"
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_storage:
+
+networks:
+  crawlforge_net:
+    driver: bridge
