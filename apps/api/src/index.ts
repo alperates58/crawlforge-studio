@@ -132,6 +132,22 @@ app.post('/api/bots', authenticateToken, async (req: any, res) => {
   }
 });
 
+app.get('/api/bots/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const bot = await prisma.bot.findUnique({
+      where: { id },
+      include: { project: true }
+    });
+    if (!bot) {
+      return res.status(404).json({ error: 'Bot not found' });
+    }
+    res.json(bot);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch bot' });
+  }
+});
+
 app.put('/api/bots/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;

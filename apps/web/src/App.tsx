@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Bots from './pages/Bots';
+import BotBuilder from './pages/BotBuilder';
 import Datasets from './pages/Datasets';
 import Documents from './pages/Documents';
 import Settings from './pages/Settings';
@@ -16,22 +18,26 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        
-        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index element={<Navigate to="/dashboard" />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="projects" element={<Projects />} />
-          <Route path="bots" element={<Bots />} />
-          <Route path="runs" element={<Runs />} />
-          <Route path="datasets" element={<Datasets />} />
-          <Route path="documents" element={<Documents />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <>
+      <Toaster position="top-right" richColors />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          
+          <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+            <Route index element={<Navigate to="/dashboard" />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="bots" element={<Bots />} />
+            <Route path="bots/:id" element={<BotBuilder />} />
+            <Route path="runs" element={<Runs />} />
+            <Route path="datasets" element={<Datasets />} />
+            <Route path="documents" element={<Documents />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

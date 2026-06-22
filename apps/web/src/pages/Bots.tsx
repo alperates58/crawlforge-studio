@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Plus } from 'lucide-react';
 
@@ -15,6 +16,7 @@ interface Bot {
 export default function Bots() {
   const [bots, setBots] = useState<Bot[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchBots = async () => {
     try {
@@ -61,7 +63,11 @@ export default function Bots() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {bots.map((bot) => (
-                <tr key={bot.id} className="hover:bg-gray-50">
+                <tr 
+                  key={bot.id} 
+                  onClick={() => navigate(`/bots/${bot.id}`)}
+                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{bot.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{bot.project?.name || '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{bot.startUrl || '-'}</td>

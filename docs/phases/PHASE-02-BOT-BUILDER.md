@@ -32,9 +32,9 @@ Create the first no-code bot builder UI.
 
 ## Checklist
 
-- [ ] Step editor
-- [ ] Step type forms
-- [ ] JSON validation
-- [ ] Reorder steps
-- [ ] Save bot steps
-- [ ] Load existing steps
+- [x] Step editor
+- [x] Step type forms
+- [x] JSON validation
+- [x] Reorder steps
+- [x] Save bot steps
+- [x] Load existing steps

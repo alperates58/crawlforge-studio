@@ -3,7 +3,7 @@
 ## Current Phase
 
 ```txt
-PHASE-01-FOUNDATION
+PHASE-02-BOT-BUILDER
 ```
 
 ## Current Version
@@ -14,7 +14,7 @@ PHASE-01-FOUNDATION
 
 ## Project State
 
-Application foundation is built. Monorepo, API, DB, and Web are connected and running via Docker Compose.
+Application foundation is built. Bot Builder UI is developed allowing visual creation, ordering and validation of steps which are correctly parsed to JSON.
 
 ## Completed
 
@@ -31,15 +31,19 @@ Application foundation is built. Monorepo, API, DB, and Web are connected and ru
 - [x] Phase 01: Prisma & PostgreSQL setup
 - [x] Phase 01: JWT Auth & API
 - [x] Phase 01: Web UI (Dashboard, Projects, Bots)
+- [x] Phase 02: Bot Builder UI
+- [x] Phase 02: Visual Step editor with form fields
+- [x] Phase 02: Read-only JSON preview
+- [x] Phase 02: API support for saving steps_json
 
 ## In Progress
 
-- [ ] Moving to Phase 02
+- [ ] Moving to Phase 03
 
 ## Next Phase
 
 ```txt
-PHASE-02-BOT-BUILDER
+PHASE-03-WORKER-ENGINE
 ```
 
 ## Phase 01 Goal
