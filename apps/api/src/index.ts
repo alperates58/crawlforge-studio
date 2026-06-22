@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@crawlforge/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Queue } from 'bullmq';
+import IORedis from 'ioredis';
 
 dotenv.config();
 
@@ -11,6 +13,10 @@ const app = express();
 const port = process.env.PORT || 3001;
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+
+const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
+const botRunsQueue = new Queue('bot-runs', { connection: connection as any });
 
 app.use(cors());
 app.use(express.json());
@@ -159,6 +165,60 @@ app.put('/api/bots/:id', authenticateToken, async (req, res) => {
     res.json(bot);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update bot' });
+  }
+});
+
+app.post('/api/bots/:id/run', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Create run record
+    const run = await prisma.botRun.create({
+      data: {
+        botId: id,
+        status: 'queued',
+      }
+    });
+
+    // Add to BullMQ queue
+    await botRunsQueue.add('run-bot', { runId: run.id });
+
+    res.json(run);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to start bot run' });
+  }
+});
+
+app.get('/api/runs', authenticateToken, async (req, res) => {
+  try {
+    const runs = await prisma.botRun.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { bot: true },
+      take: 50
+    });
+    res.json(runs);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch runs' });
+  }
+});
+
+app.get('/api/runs/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const run = await prisma.botRun.findUnique({
+      where: { id },
+      include: {
+        bot: true,
+        stepLogs: {
+          orderBy: { stepIndex: 'asc' }
+        }
+      }
+    });
+    if (!run) return res.status(404).json({ error: 'Run not found' });
+    res.json(run);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch run' });
   }
 });
 

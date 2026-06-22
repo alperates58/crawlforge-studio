@@ -9,6 +9,7 @@ import Datasets from './pages/Datasets';
 import Documents from './pages/Documents';
 import Settings from './pages/Settings';
 import Runs from './pages/Runs';
+import RunDetail from './pages/RunDetail';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,7 @@ function App() {
             <Route path="bots" element={<Bots />} />
             <Route path="bots/:id" element={<BotBuilder />} />
             <Route path="runs" element={<Runs />} />
+            <Route path="runs/:id" element={<RunDetail />} />
             <Route path="datasets" element={<Datasets />} />
             <Route path="documents" element={<Documents />} />
             <Route path="settings" element={<Settings />} />

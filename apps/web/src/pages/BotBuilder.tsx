@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BotStep, StepType } from '../types/bot';
 import { toast } from 'sonner';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Play } from 'lucide-react';
 import StepList from '../components/BotBuilder/StepList';
 import StepEditor from '../components/BotBuilder/StepEditor';
 
@@ -75,6 +75,20 @@ export default function BotBuilder() {
     }
   };
 
+  const handleRun = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`http://localhost:3001/api/bots/${id}/run`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Bot run queued successfully');
+      navigate(`/runs/${response.data.id}`);
+    } catch (error) {
+      toast.error('Failed to start bot run');
+      console.error(error);
+    }
+  };
+
   const handleAddStep = (type: StepType) => {
     const newStep: any = { id: crypto.randomUUID(), type };
     
@@ -140,6 +154,16 @@ export default function BotBuilder() {
         </div>
         
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleRun}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Play className="w-4 h-4" />
+            Run Bot
+          </button>
+          
+          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+          
           <div className="flex bg-gray-100 p-1 rounded-lg">
             <button
               onClick={() => setActiveTab('builder')}

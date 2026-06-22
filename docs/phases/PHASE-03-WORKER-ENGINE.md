@@ -27,10 +27,10 @@ Execute bot steps using Playwright through a queue-based worker.
 
 ## Checklist
 
-- [ ] Queue created
-- [ ] Worker service created
-- [ ] Manual run button
-- [ ] Run status tracking
-- [ ] Step logs
-- [ ] Error handling
-- [ ] Dataset record save
+- [x] Queue created
+- [x] Worker service created
+- [x] Manual run button
+- [x] Run status tracking
+- [x] Step logs
+- [x] Error handling
+- [x] Dataset record save

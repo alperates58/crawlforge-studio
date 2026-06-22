@@ -3,7 +3,7 @@
 ## Current Phase
 
 ```txt
-PHASE-02-BOT-BUILDER
+PHASE-03-WORKER-ENGINE
 ```
 
 ## Current Version
@@ -14,7 +14,7 @@ PHASE-02-BOT-BUILDER
 
 ## Project State
 
-Application foundation is built. Bot Builder UI is developed allowing visual creation, ordering and validation of steps which are correctly parsed to JSON.
+Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs.
 
 ## Completed
 
@@ -35,15 +35,20 @@ Application foundation is built. Bot Builder UI is developed allowing visual cre
 - [x] Phase 02: Visual Step editor with form fields
 - [x] Phase 02: Read-only JSON preview
 - [x] Phase 02: API support for saving steps_json
+- [x] Phase 03: Redis + BullMQ integration
+- [x] Phase 03: Playwright Worker Engine
+- [x] Phase 03: Step Handlers (Open URL, Click, Type, Wait, Scroll, Extract, Save)
+- [x] Phase 03: Manual Bot Run execution and reporting
+- [x] Phase 03: Run detail UI with step logs
 
 ## In Progress
 
-- [ ] Moving to Phase 03
+- [ ] Moving to Phase 04
 
 ## Next Phase
 
 ```txt
-PHASE-03-WORKER-ENGINE
+PHASE-04-DATA-MANAGEMENT
 ```
 
 ## Phase 01 Goal

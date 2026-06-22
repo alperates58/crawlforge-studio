@@ -9,7 +9,10 @@
   },
   "dependencies": {
     "@crawlforge/database": "*",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "bullmq": "^5.7.8",
+    "ioredis": "^5.4.1",
+    "playwright": "^1.44.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

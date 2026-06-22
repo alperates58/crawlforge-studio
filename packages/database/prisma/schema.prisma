@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -46,4 +46,64 @@ model Bot {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  botRuns     BotRun[]
+}
+
+enum BotRunStatus {
+  queued
+  running
+  succeeded
+  failed
+  cancelled
+}
+
+model BotRun {
+  id               String       @id @default(uuid())
+  botId            String
+  bot              Bot          @relation(fields: [botId], references: [id])
+  status           BotRunStatus @default(queued)
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  durationMs       Int?
+  pagesVisited     Int          @default(0)
+  recordsExtracted Int          @default(0)
+  filesDownloaded  Int          @default(0)
+  errorMessage     String?
+  createdAt        DateTime     @default(now())
+  stepLogs         BotStepLog[]
+  datasets         Dataset[]
+}
+
+model BotStepLog {
+  id             String   @id @default(uuid())
+  runId          String
+  run            BotRun   @relation(fields: [runId], references: [id])
+  stepIndex      Int
+  stepType       String
+  status         String
+  message        String?
+  dataJson       String?
+  screenshotPath String?
+  createdAt      DateTime @default(now())
+}
+
+enum DatasetStatus {
+  draft
+  needs_review
+  approved
+  rejected
+}
+
+model Dataset {
+  id              String        @id @default(uuid())
+  projectId       String?
+  botId           String?
+  runId           String?
+  run             BotRun?       @relation(fields: [runId], references: [id])
+  sourceUrl       String?
+  dataJson        String?
+  status          DatasetStatus @default(draft)
+  confidenceScore Float?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
