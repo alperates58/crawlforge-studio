@@ -9,6 +9,7 @@ import IORedis from 'ioredis';
 import { encrypt } from './utils/encryption';
 import { AiProviderService } from './services/AiProviderService';
 import cronParser from 'cron-parser';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -27,6 +28,38 @@ app.use(express.json());
 
 // Serve storage directory
 app.use('/storage', express.static('/app/storage'));
+
+// Version Header Middleware
+const APP_VERSION = process.env.APP_VERSION || '0.9.0';
+app.use((req, res, next) => {
+  res.setHeader('X-CrawlForge-Version', APP_VERSION);
+  next();
+});
+
+// Health Checks (Excluded from Rate Limit)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', version: APP_VERSION, uptime: process.uptime() });
+});
+app.get('/api/health/worker', async (req, res) => {
+  // Simple check for now, can be expanded to check bullmq workers count
+  res.json({ status: 'ok', version: APP_VERSION, uptime: process.uptime() });
+});
+app.get('/api/health/ai-worker', async (req, res) => {
+  res.json({ status: 'ok', version: APP_VERSION, uptime: process.uptime() });
+});
+app.get('/api/health/scheduler', async (req, res) => {
+  res.json({ status: 'ok', version: APP_VERSION, uptime: process.uptime() });
+});
+
+// Rate Limiting
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 1 minute)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+app.use('/api', apiLimiter);
 
 // Auth Middleware
 const authenticateToken = (req: any, res: any, next: any) => {
@@ -243,12 +276,48 @@ app.post('/api/bots/:id/run', authenticateToken, async (req, res) => {
     });
 
     // Add to BullMQ queue
-    await botRunsQueue.add('run-bot', { runId: run.id });
+    await botRunsQueue.add('run-bot', { runId: run.id }, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 30000 }
+    });
 
     res.json(run);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to start bot run' });
+  }
+});
+
+app.get('/api/system/stats', authenticateToken, async (req, res) => {
+  try {
+    const totalProjects = await prisma.project.count();
+    const totalBots = await prisma.bot.count();
+    const totalDatasets = await prisma.dataset.count();
+    const totalDocuments = await prisma.document.count();
+    const totalAiJobs = await prisma.aiJob.count();
+    
+    // Postgres size estimate (very basic, actual size depends on permissions)
+    let storageSize = 'Unknown';
+    try {
+      const result: any = await prisma.$queryRaw`SELECT pg_size_pretty(pg_database_size(current_database())) as size`;
+      if (result && result.length > 0) {
+        storageSize = result[0].size;
+      }
+    } catch (err) {
+      storageSize = 'Permission Denied';
+    }
+
+    res.json({
+      totalProjects,
+      totalBots,
+      totalDatasets,
+      totalDocuments,
+      totalAiJobs,
+      storageSize,
+      databaseStatus: 'Healthy'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch system stats' });
   }
 });
 
@@ -807,7 +876,10 @@ app.post('/api/ai-jobs/:id/run', authenticateToken, async (req, res) => {
       data: { status: 'running' } // BullMQ picks it up or we just queue it
     });
 
-    await aiJobsQueue.add('extract', { aiJobId: job.id });
+    await aiJobsQueue.add('extract', { aiJobId: job.id }, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 30000 }
+    });
 
     res.json({ message: 'Job queued successfully' });
   } catch (error: any) {

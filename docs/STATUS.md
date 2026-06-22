@@ -3,18 +3,18 @@
 ## Current Phase
 
 ```txt
-PHASE-08-SCHEDULER
+PHASE-09-PRODUCTION-HARDENING
 ```
 
 ## Current Version
 
 ```txt
-0.0.1
+0.9.0
 ```
 
 ## Project State
 
-Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots.
+Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots. Production hardening is complete (rate limits, retries, cleanup, metrics, health).
 
 ## Completed
 
@@ -49,6 +49,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 06B: AI Jobs and Review (ai-worker, Manual Review, UI integration)
 - [x] Phase 07: Loop Links and Pagination (Deep scraping logic, Isolated Tabs, DB Logging)
 - [x] Phase 08: Scheduler (Timezone-aware cron scheduling, standalone worker, UI management)
+- [x] Phase 09: Production Hardening (Rate limits, Retries, Concurrency, System Metrics, Cleanup Jobs)
 
 ## In Progress
 
@@ -57,7 +58,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 ## Next Phase
 
 ```txt
-PHASE-09-NOTIFICATIONS
+PHASE-10-BROWSER-RECORDER
 ```
 
 ## Phase 01 Goal

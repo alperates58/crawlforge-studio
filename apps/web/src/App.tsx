@@ -10,6 +10,7 @@ import DatasetDetail from './pages/DatasetDetail';
 import Documents from './pages/Documents';
 import DocumentDetail from './pages/DocumentDetail';
 import Settings from './pages/Settings';
+import SystemSettings from './pages/SystemSettings';
 import Runs from './pages/Runs';
 import RunDetail from './pages/RunDetail';
 import Schedules from './pages/Schedules';
@@ -46,6 +47,7 @@ function App() {
             <Route path="ai-jobs" element={<AiJobs />} />
             <Route path="ai-jobs/:id" element={<AiJobDetail />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="system-settings" element={<SystemSettings />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -11,6 +11,8 @@ const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
 const prisma = new PrismaClient();
 const aiProviderService = new AiProviderService();
 
+const AI_WORKER_CONCURRENCY = parseInt(process.env.AI_WORKER_CONCURRENCY || '2', 10);
+
 console.log('AI Worker starting up. Listening to ai-jobs queue...');
 
 const worker = new Worker('ai-jobs', async (job) => {
@@ -103,7 +105,10 @@ const worker = new Worker('ai-jobs', async (job) => {
       }
     });
   }
-}, { connection: connection as any });
+}, { 
+  connection: connection as any,
+  concurrency: AI_WORKER_CONCURRENCY
+});
 
 worker.on('failed', (job, err) => {
   console.error(`Job failed with error ${err.message}`);

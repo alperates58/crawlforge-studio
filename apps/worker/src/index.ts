@@ -12,6 +12,8 @@ const connection = new IORedis(REDIS_URL, {
   maxRetriesPerRequest: null,
 });
 
+const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
+
 const prisma = new PrismaClient();
 
 async function processJob(job: Job) {
@@ -68,7 +70,10 @@ async function processJob(job: Job) {
   }
 }
 
-const worker = new Worker('bot-runs', processJob, { connection: connection as any });
+const worker = new Worker('bot-runs', processJob, { 
+  connection: connection as any,
+  concurrency: WORKER_CONCURRENCY
+});
 
 worker.on('ready', () => {
   console.log('[Worker] Listening for jobs on queue "bot-runs"...');

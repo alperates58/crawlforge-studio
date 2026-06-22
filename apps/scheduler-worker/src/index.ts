@@ -3,6 +3,9 @@ import IORedis from 'ioredis';
 import { Queue } from 'bullmq';
 import cronParser from 'cron-parser';
 import dotenv from 'dotenv';
+import os from 'os';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -94,13 +97,91 @@ async function processSchedules() {
   }
 }
 
+async function collectMetrics() {
+  try {
+    const queueSize = await botRunsQueue.count();
+    // Getting active bullmq workers would require querying bullmq internals, we use a placeholder or approximate.
+    const activeWorkers = await botRunsQueue.getWorkers().then(w => w.length).catch(() => 0);
+
+    const cpuUsage = os.loadavg()[0]; // 1 minute load avg
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const memoryUsage = ((totalMem - freeMem) / totalMem) * 100;
+
+    await prisma.systemMetric.create({
+      data: {
+        cpuUsage,
+        memoryUsage,
+        queueSize,
+        activeWorkers
+      }
+    });
+    console.log(`[Scheduler] Collected metrics: CPU ${cpuUsage.toFixed(2)}, Mem ${memoryUsage.toFixed(2)}%, Queue ${queueSize}`);
+  } catch (err: any) {
+    console.error(`[Scheduler] Failed to collect metrics: ${err.message}`);
+  }
+}
+
+async function runCleanup() {
+  try {
+    console.log('[Scheduler] Running daily cleanup...');
+    const now = new Date();
+    
+    // 1. Delete BotStepLog older than 90 days
+    const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    const deletedLogs = await prisma.botStepLog.deleteMany({
+      where: { createdAt: { lt: ninetyDaysAgo } }
+    });
+    console.log(`[Scheduler] Cleaned up ${deletedLogs.count} old BotStepLogs.`);
+
+    // 2. Temp files older than 30 days
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const tmpPath = '/app/storage/tmp';
+    if (fs.existsSync(tmpPath)) {
+      const files = fs.readdirSync(tmpPath);
+      let deletedTmpCount = 0;
+      for (const file of files) {
+        const filePath = path.join(tmpPath, file);
+        const stats = fs.statSync(filePath);
+        if (stats.mtime < thirtyDaysAgo) {
+          fs.unlinkSync(filePath);
+          deletedTmpCount++;
+        }
+      }
+      console.log(`[Scheduler] Cleaned up ${deletedTmpCount} old temp files.`);
+    }
+
+    // Note: Screenshots can be cleaned similarly if stored in a predictable path.
+    // Assuming /app/storage/screenshots
+    const screenshotsPath = '/app/storage/screenshots';
+    if (fs.existsSync(screenshotsPath)) {
+      const files = fs.readdirSync(screenshotsPath);
+      let deletedScreenshots = 0;
+      for (const file of files) {
+        const filePath = path.join(screenshotsPath, file);
+        const stats = fs.statSync(filePath);
+        if (stats.mtime < thirtyDaysAgo) {
+          fs.unlinkSync(filePath);
+          deletedScreenshots++;
+        }
+      }
+      console.log(`[Scheduler] Cleaned up ${deletedScreenshots} old screenshots.`);
+    }
+  } catch (err: any) {
+    console.error(`[Scheduler] Failed to run cleanup: ${err.message}`);
+  }
+}
+
 async function start() {
   console.log(`[Scheduler] Starting worker. Interval: ${SCHEDULER_INTERVAL_SECONDS}s`);
   
   // Initial check
   await processSchedules();
+  await collectMetrics();
 
   setInterval(processSchedules, SCHEDULER_INTERVAL_SECONDS * 1000);
+  setInterval(collectMetrics, 5 * 60 * 1000); // 5 minutes
+  setInterval(runCleanup, 24 * 60 * 60 * 1000); // 24 hours
 }
 
 start().catch(console.error);

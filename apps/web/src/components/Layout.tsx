@@ -8,7 +8,8 @@ import {
   FileText,
   Settings,
   LogOut,
-  Calendar
+  Calendar,
+  Server
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -30,6 +31,7 @@ export default function Layout() {
     { name: 'Documents', path: '/documents', icon: FileText },
     { name: 'AI Jobs', path: '/ai-jobs', icon: Activity },
     { name: 'Settings', path: '/settings', icon: Settings },
+    { name: 'System Settings', path: '/system-settings', icon: Server },
   ];
 
   return (
