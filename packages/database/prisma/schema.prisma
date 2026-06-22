@@ -31,6 +31,7 @@ model Project {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
   bots         Bot[]
+  datasets     Dataset[]
 }
 
 model Bot {
@@ -47,6 +48,7 @@ model Bot {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
   botRuns     BotRun[]
+  datasets    Dataset[]
 }
 
 enum BotRunStatus {
@@ -97,7 +99,9 @@ enum DatasetStatus {
 model Dataset {
   id              String        @id @default(uuid())
   projectId       String?
+  project         Project?      @relation(fields: [projectId], references: [id])
   botId           String?
+  bot             Bot?          @relation(fields: [botId], references: [id])
   runId           String?
   run             BotRun?       @relation(fields: [runId], references: [id])
   sourceUrl       String?

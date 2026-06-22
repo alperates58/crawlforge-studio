@@ -6,6 +6,7 @@ import Projects from './pages/Projects';
 import Bots from './pages/Bots';
 import BotBuilder from './pages/BotBuilder';
 import Datasets from './pages/Datasets';
+import DatasetDetail from './pages/DatasetDetail';
 import Documents from './pages/Documents';
 import Settings from './pages/Settings';
 import Runs from './pages/Runs';
@@ -34,6 +35,7 @@ function App() {
             <Route path="runs" element={<Runs />} />
             <Route path="runs/:id" element={<RunDetail />} />
             <Route path="datasets" element={<Datasets />} />
+            <Route path="datasets/:id" element={<DatasetDetail />} />
             <Route path="documents" element={<Documents />} />
             <Route path="settings" element={<Settings />} />
           </Route>

@@ -3,7 +3,7 @@
 ## Current Phase
 
 ```txt
-PHASE-03-WORKER-ENGINE
+PHASE-04-DATASETS
 ```
 
 ## Current Version
@@ -40,15 +40,20 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 03: Step Handlers (Open URL, Click, Type, Wait, Scroll, Extract, Save)
 - [x] Phase 03: Manual Bot Run execution and reporting
 - [x] Phase 03: Run detail UI with step logs
+- [x] Phase 04: Database schema relations for Datasets
+- [x] Phase 04: API endpoints (list, detail, update, approve/reject, csv export)
+- [x] Phase 04: Datasets listing page with filters, search, and pagination
+- [x] Phase 04: Dataset Detail page with raw JSON editing
+- [x] Phase 04: CSV streaming export with dynamic columns
 
 ## In Progress
 
-- [ ] Moving to Phase 04
+- [ ] Moving to Phase 05
 
 ## Next Phase
 
 ```txt
-PHASE-04-DATA-MANAGEMENT
+PHASE-05-DOCUMENT-CENTER
 ```
 
 ## Phase 01 Goal

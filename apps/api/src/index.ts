@@ -222,6 +222,220 @@ app.get('/api/runs/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/datasets', authenticateToken, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 50;
+    const skip = (page - 1) * pageSize;
+
+    const { search, projectId, botId, status } = req.query;
+
+    const where: any = {};
+    if (projectId) where.projectId = projectId;
+    if (botId) where.botId = botId;
+    if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { sourceUrl: { contains: search as string, mode: 'insensitive' } },
+        { dataJson: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    const [total, datasets] = await Promise.all([
+      prisma.dataset.count({ where }),
+      prisma.dataset.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+        include: {
+          project: { select: { name: true } },
+          bot: { select: { name: true } }
+        }
+      })
+    ]);
+
+    res.json({ data: datasets, total, page, pageSize });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch datasets' });
+  }
+});
+
+app.get('/api/datasets/export/csv', authenticateToken, async (req, res) => {
+  try {
+    const { search, projectId, botId, status } = req.query;
+
+    const where: any = {};
+    if (projectId) where.projectId = projectId;
+    if (botId) where.botId = botId;
+    if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { sourceUrl: { contains: search as string, mode: 'insensitive' } },
+        { dataJson: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    // Pass 1: Collect unique JSON keys
+    const jsonKeys = new Set<string>();
+    const BATCH_SIZE = 500;
+    let skip = 0;
+    
+    while (true) {
+      const batch = await prisma.dataset.findMany({
+        where,
+        select: { dataJson: true },
+        skip,
+        take: BATCH_SIZE,
+        orderBy: { id: 'asc' }
+      });
+      if (batch.length === 0) break;
+      
+      for (const item of batch) {
+        if (item.dataJson) {
+          try {
+            const parsed = JSON.parse(item.dataJson);
+            Object.keys(parsed).forEach(k => jsonKeys.add(k));
+          } catch(e) {}
+        }
+      }
+      skip += BATCH_SIZE;
+    }
+
+    const jsonColumns = Array.from(jsonKeys);
+    const fixedColumns = ['id', 'project', 'bot', 'run_id', 'source_url', 'status', 'created_at'];
+    const allColumns = [...fixedColumns, ...jsonColumns];
+
+    // Set headers for streaming response
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="datasets.csv"');
+    
+    // Write CSV Header
+    res.write(allColumns.join(',') + '\n');
+    
+    // Pass 2: Stream actual rows
+    skip = 0;
+    while (true) {
+      const batch = await prisma.dataset.findMany({
+        where,
+        include: {
+          project: { select: { name: true } },
+          bot: { select: { name: true } }
+        },
+        skip,
+        take: BATCH_SIZE,
+        orderBy: { id: 'asc' }
+      });
+      if (batch.length === 0) break;
+      
+      for (const item of batch) {
+        let parsed: any = {};
+        if (item.dataJson) {
+          try {
+            parsed = JSON.parse(item.dataJson);
+          } catch(e) {}
+        }
+
+        const row = [];
+        row.push(`"${item.id}"`);
+        row.push(`"${item.project?.name || ''}"`);
+        row.push(`"${item.bot?.name || ''}"`);
+        row.push(`"${item.runId || ''}"`);
+        row.push(`"${item.sourceUrl || ''}"`);
+        row.push(`"${item.status}"`);
+        row.push(`"${new Date(item.createdAt).toISOString()}"`);
+        
+        for (const col of jsonColumns) {
+          let val = parsed[col];
+          if (val === null || val === undefined) val = '';
+          if (typeof val === 'object') val = JSON.stringify(val);
+          val = String(val).replace(/"/g, '""');
+          row.push(`"${val}"`);
+        }
+        
+        res.write(row.join(',') + '\n');
+      }
+      skip += BATCH_SIZE;
+    }
+    
+    res.end();
+  } catch (error) {
+    console.error('Export Error:', error);
+    res.status(500).json({ error: 'Failed to export datasets' });
+  }
+});
+
+app.get('/api/datasets/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dataset = await prisma.dataset.findUnique({
+      where: { id },
+      include: {
+        project: true,
+        bot: true
+      }
+    });
+    if (!dataset) return res.status(404).json({ error: 'Dataset not found' });
+    res.json(dataset);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch dataset' });
+  }
+});
+
+app.put('/api/datasets/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dataJson, status } = req.body;
+    
+    // Validate JSON if provided
+    if (dataJson) {
+      try {
+        JSON.parse(dataJson);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid JSON data' });
+      }
+    }
+
+    const dataToUpdate: any = {};
+    if (dataJson !== undefined) dataToUpdate.dataJson = dataJson;
+    if (status) dataToUpdate.status = status;
+
+    const dataset = await prisma.dataset.update({
+      where: { id },
+      data: dataToUpdate
+    });
+    res.json(dataset);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update dataset' });
+  }
+});
+
+app.post('/api/datasets/:id/approve', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dataset = await prisma.dataset.update({
+      where: { id },
+      data: { status: 'approved' }
+    });
+    res.json(dataset);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to approve dataset' });
+  }
+});
+
+app.post('/api/datasets/:id/reject', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dataset = await prisma.dataset.update({
+      where: { id },
+      data: { status: 'rejected' }
+    });
+    res.json(dataset);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to reject dataset' });
+  }
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });

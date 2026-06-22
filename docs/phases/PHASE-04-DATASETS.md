@@ -16,9 +16,9 @@ Manage extracted structured records.
 
 ## Checklist
 
-- [ ] Dataset list
-- [ ] Dataset detail
-- [ ] Status filters
-- [ ] Approve/reject
-- [ ] CSV export
-- [ ] Source URL visible
+- [x] Dataset list
+- [x] Dataset detail
+- [x] Status filters
+- [x] Approve/reject
+- [x] CSV export
+- [x] Source URL visible
