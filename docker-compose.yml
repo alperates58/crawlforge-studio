@@ -85,6 +85,23 @@ services:
     networks:
       - crawlforge_net
 
+  recorder-worker:
+    build:
+      context: .
+      dockerfile: apps/recorder-worker/Dockerfile
+    container_name: crawlforge-recorder-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - api
+    networks:
+      - crawlforge_net
+    ports:
+      - "3002:3002"
+
   web:
     build:
       context: .

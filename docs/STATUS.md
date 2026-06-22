@@ -3,18 +3,18 @@
 ## Current Phase
 
 ```txt
-PHASE-09-PRODUCTION-HARDENING
+PHASE-10-BROWSER-RECORDER
 ```
 
 ## Current Version
 
 ```txt
-0.9.0
+0.10.0
 ```
 
 ## Project State
 
-Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots. Production hardening is complete (rate limits, retries, cleanup, metrics, health).
+Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots. Production hardening is complete (rate limits, retries, cleanup, metrics, health). Browser Recorder provides CDP Screencast-based remote browsing and click/type step recording inside the web UI.
 
 ## Completed
 
@@ -50,6 +50,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 07: Loop Links and Pagination (Deep scraping logic, Isolated Tabs, DB Logging)
 - [x] Phase 08: Scheduler (Timezone-aware cron scheduling, standalone worker, UI management)
 - [x] Phase 09: Production Hardening (Rate limits, Retries, Concurrency, System Metrics, Cleanup Jobs)
+- [x] Phase 10: Browser Recorder (CDP Screencast, Interactive Visual Recording, Intelligent Selectors)
 
 ## In Progress
 
@@ -58,7 +59,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 ## Next Phase
 
 ```txt
-PHASE-10-BROWSER-RECORDER
+PHASE-11-DASHBOARD-AND-ANALYTICS
 ```
 
 ## Phase 01 Goal

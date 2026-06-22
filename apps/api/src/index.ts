@@ -919,6 +919,91 @@ app.post('/api/ai-jobs/:id/reject', authenticateToken, async (req, res) => {
   }
 });
 
+// Recorder Sessions
+app.post('/api/recorder/sessions', authenticateToken, async (req, res) => {
+  const { startUrl, botId } = req.body;
+  const userId = (req as any).user.id;
+
+  try {
+    // Limit active sessions per user to 1
+    const activeSession = await prisma.recorderSession.findFirst({
+      where: {
+        userId,
+        status: { in: ['starting', 'running'] }
+      }
+    });
+
+    if (activeSession) {
+      return res.status(400).json({ error: 'You already have an active recording session', session: activeSession });
+    }
+
+    const session = await prisma.recorderSession.create({
+      data: {
+        userId,
+        botId,
+        startUrl,
+        status: 'starting'
+      }
+    });
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create recorder session' });
+  }
+});
+
+app.get('/api/recorder/sessions/:id', authenticateToken, async (req, res) => {
+  try {
+    const session = await prisma.recorderSession.findUnique({
+      where: { id: req.params.id }
+    });
+    if (!session || session.userId !== (req as any).user.id) return res.status(404).json({ error: 'Session not found' });
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch session' });
+  }
+});
+
+app.post('/api/recorder/sessions/:id/stop', authenticateToken, async (req, res) => {
+  try {
+    const session = await prisma.recorderSession.findUnique({
+      where: { id: req.params.id }
+    });
+    if (!session || session.userId !== (req as any).user.id) return res.status(404).json({ error: 'Session not found' });
+
+    const updated = await prisma.recorderSession.update({
+      where: { id: req.params.id },
+      data: {
+        status: 'stopped',
+        stoppedAt: new Date()
+      }
+    });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to stop session' });
+  }
+});
+
+app.delete('/api/recorder/sessions/:id', authenticateToken, async (req, res) => {
+  try {
+    const session = await prisma.recorderSession.findUnique({
+      where: { id: req.params.id }
+    });
+    if (!session || session.userId !== (req as any).user.id) return res.status(404).json({ error: 'Session not found' });
+
+    if (session.status === 'starting' || session.status === 'running') {
+      await prisma.recorderSession.update({
+        where: { id: req.params.id },
+        data: { status: 'stopped', stoppedAt: new Date() }
+      });
+    }
+
+    await prisma.recorderSession.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete session' });
+  }
+});
+
 // Auto-seed Initial Schema and Template
 async function autoSeed() {
   const existingSchema = await prisma.extractionSchema.findFirst({

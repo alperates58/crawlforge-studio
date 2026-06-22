@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Save, Play } from 'lucide-react';
 import StepList from '../components/BotBuilder/StepList';
 import StepEditor from '../components/BotBuilder/StepEditor';
+import RecorderTab from '../components/RecorderTab';
 
 export default function BotBuilder() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ export default function BotBuilder() {
   const [bot, setBot] = useState<any>(null);
   const [steps, setSteps] = useState<BotStep[]>([]);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'builder' | 'json' | 'schedule'>('builder');
+  const [activeTab, setActiveTab] = useState<'builder' | 'recorder' | 'json' | 'schedule'>('builder');
   const [schedule, setSchedule] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -199,6 +200,14 @@ export default function BotBuilder() {
               Builder
             </button>
             <button 
+              onClick={() => setActiveTab('recorder')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'recorder' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Recorder
+            </button>
+            <button 
               onClick={() => setActiveTab('json')}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 activeTab === 'json' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
@@ -257,6 +266,22 @@ export default function BotBuilder() {
               )}
             </div>
           </>
+        ) : activeTab === 'recorder' ? (
+          <div className="flex-1 p-6 overflow-y-auto">
+            <RecorderTab 
+              botId={id as string} 
+              onAppendSteps={(recordedSteps) => {
+                setSteps([...steps, ...recordedSteps]);
+                toast.success('Steps appended successfully');
+                setActiveTab('builder');
+              }}
+              onReplaceSteps={(recordedSteps) => {
+                setSteps(recordedSteps);
+                toast.success('Steps replaced successfully');
+                setActiveTab('builder');
+              }}
+            />
+          </div>
         ) : activeTab === 'json' ? (
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="bg-gray-900 rounded-lg p-6 shadow-inner h-full overflow-auto">
