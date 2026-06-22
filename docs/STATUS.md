@@ -3,7 +3,7 @@
 ## Current Phase
 
 ```txt
-PHASE-05-DOCUMENT-CENTER
+PHASE-08-SCHEDULER
 ```
 
 ## Current Version
@@ -14,7 +14,7 @@ PHASE-05-DOCUMENT-CENTER
 
 ## Project State
 
-Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs.
+Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots.
 
 ## Completed
 
@@ -48,6 +48,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 06A: AI Foundation (AI Settings, Schemas, Prompts, Playground)
 - [x] Phase 06B: AI Jobs and Review (ai-worker, Manual Review, UI integration)
 - [x] Phase 07: Loop Links and Pagination (Deep scraping logic, Isolated Tabs, DB Logging)
+- [x] Phase 08: Scheduler (Timezone-aware cron scheduling, standalone worker, UI management)
 
 ## In Progress
 
@@ -56,7 +57,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 ## Next Phase
 
 ```txt
-PHASE-08-KNOWLEDGE-GRAPH
+PHASE-09-NOTIFICATIONS
 ```
 
 ## Phase 01 Goal

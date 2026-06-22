@@ -12,6 +12,7 @@ import DocumentDetail from './pages/DocumentDetail';
 import Settings from './pages/Settings';
 import Runs from './pages/Runs';
 import RunDetail from './pages/RunDetail';
+import Schedules from './pages/Schedules';
 import AiJobs from './pages/AiJobs';
 import AiJobDetail from './pages/AiJobDetail';
 import Layout from './components/Layout';
@@ -35,6 +36,7 @@ function App() {
             <Route path="projects" element={<Projects />} />
             <Route path="bots" element={<Bots />} />
             <Route path="bots/:id" element={<BotBuilder />} />
+            <Route path="schedules" element={<Schedules />} />
             <Route path="runs" element={<Runs />} />
             <Route path="runs/:id" element={<RunDetail />} />
             <Route path="datasets" element={<Datasets />} />

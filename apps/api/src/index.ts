@@ -8,6 +8,7 @@ import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { encrypt } from './utils/encryption';
 import { AiProviderService } from './services/AiProviderService';
+import cronParser from 'cron-parser';
 
 dotenv.config();
 
@@ -174,6 +175,61 @@ app.put('/api/bots/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/bots/:id/schedule', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schedule = await prisma.botSchedule.findUnique({
+      where: { botId: id }
+    });
+    res.json(schedule || null);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch schedule' });
+  }
+});
+
+app.put('/api/bots/:id/schedule', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type, cronExpression, timezone, isActive } = req.body;
+    
+    let nextRunAt = null;
+    
+    if (isActive && type !== 'manual' && cronExpression) {
+      try {
+        const interval = cronParser.parseExpression(cronExpression, {
+          tz: timezone || 'Europe/Istanbul'
+        });
+        nextRunAt = interval.next().toDate();
+      } catch (err: any) {
+        return res.status(400).json({ error: 'Invalid cron expression: ' + err.message });
+      }
+    }
+
+    const schedule = await prisma.botSchedule.upsert({
+      where: { botId: id },
+      update: {
+        type,
+        cronExpression,
+        timezone: timezone || 'Europe/Istanbul',
+        isActive,
+        nextRunAt
+      },
+      create: {
+        botId: id,
+        type,
+        cronExpression,
+        timezone: timezone || 'Europe/Istanbul',
+        isActive,
+        nextRunAt
+      }
+    });
+
+    res.json(schedule);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update schedule' });
+  }
+});
+
 app.post('/api/bots/:id/run', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -206,6 +262,61 @@ app.get('/api/runs', authenticateToken, async (req, res) => {
     res.json(runs);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch runs' });
+  }
+});
+
+app.get('/api/schedules', authenticateToken, async (req, res) => {
+  try {
+    const schedules = await prisma.botSchedule.findMany({
+      include: {
+        bot: {
+          include: { project: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(schedules);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch schedules' });
+  }
+});
+
+app.post('/api/schedules/:id/pause', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schedule = await prisma.botSchedule.update({
+      where: { id },
+      data: { isActive: false, nextRunAt: null }
+    });
+    res.json(schedule);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to pause schedule' });
+  }
+});
+
+app.post('/api/schedules/:id/resume', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const current = await prisma.botSchedule.findUnique({ where: { id } });
+    if (!current) return res.status(404).json({ error: 'Schedule not found' });
+
+    let nextRunAt = null;
+    if (current.type !== 'manual' && current.cronExpression) {
+      try {
+        const interval = cronParser.parseExpression(current.cronExpression, {
+          tz: current.timezone || 'Europe/Istanbul'
+        });
+        nextRunAt = interval.next().toDate();
+      } catch (err) {}
+    }
+
+    const schedule = await prisma.botSchedule.update({
+      where: { id },
+      data: { isActive: true, nextRunAt }
+    });
+    res.json(schedule);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to resume schedule' });
   }
 });
 

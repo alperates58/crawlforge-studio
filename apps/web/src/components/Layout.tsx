@@ -7,7 +7,8 @@ import {
   Database,
   FileText,
   Settings,
-  LogOut
+  LogOut,
+  Calendar
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -23,6 +24,7 @@ export default function Layout() {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Projects', path: '/projects', icon: FolderGit2 },
     { name: 'Bots', path: '/bots', icon: Bot },
+    { name: 'Schedules', path: '/schedules', icon: Calendar },
     { name: 'Runs', path: '/runs', icon: Activity },
     { name: 'Datasets', path: '/datasets', icon: Database },
     { name: 'Documents', path: '/documents', icon: FileText },

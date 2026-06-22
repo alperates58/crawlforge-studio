@@ -70,6 +70,21 @@ services:
     networks:
       - crawlforge_net
 
+  scheduler-worker:
+    build:
+      context: .
+      dockerfile: apps/scheduler-worker/Dockerfile
+    container_name: crawlforge-scheduler-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - api
+    networks:
+      - crawlforge_net
+
   web:
     build:
       context: .

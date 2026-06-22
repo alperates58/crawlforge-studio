@@ -13,7 +13,8 @@ export default function BotBuilder() {
   const [bot, setBot] = useState<any>(null);
   const [steps, setSteps] = useState<BotStep[]>([]);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'builder' | 'json'>('builder');
+  const [activeTab, setActiveTab] = useState<'builder' | 'json' | 'schedule'>('builder');
+  const [schedule, setSchedule] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -28,6 +29,20 @@ export default function BotBuilder() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setBot(response.data);
+      
+      try {
+        const scheduleResponse = await axios.get(`http://localhost:3001/api/bots/${id}/schedule`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (scheduleResponse.data) {
+          setSchedule(scheduleResponse.data);
+        } else {
+          setSchedule({ type: 'manual', timezone: 'Europe/Istanbul', isActive: false, cronExpression: '' });
+        }
+      } catch (err) {
+        console.error('Failed to load schedule', err);
+        setSchedule({ type: 'manual', timezone: 'Europe/Istanbul', isActive: false, cronExpression: '' });
+      }
       
       // Parse steps if they exist
       if (response.data.stepsJson) {
@@ -66,7 +81,14 @@ export default function BotBuilder() {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Bot steps saved successfully');
+
+      if (schedule) {
+        await axios.put(`http://localhost:3001/api/bots/${id}/schedule`, schedule, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      toast.success('Bot saved successfully');
     } catch (error) {
       toast.error('Failed to save bot steps');
       console.error(error);
@@ -176,13 +198,21 @@ export default function BotBuilder() {
             >
               Builder
             </button>
-            <button
+            <button 
               onClick={() => setActiveTab('json')}
               className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 activeTab === 'json' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               JSON Preview
+            </button>
+            <button 
+              onClick={() => setActiveTab('schedule')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'schedule' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Schedule
             </button>
           </div>
           
@@ -227,12 +257,92 @@ export default function BotBuilder() {
               )}
             </div>
           </>
-        ) : (
+        ) : activeTab === 'json' ? (
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="bg-gray-900 rounded-lg p-6 shadow-inner h-full overflow-auto">
               <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap">
                 {JSON.stringify(cleanStepsForJson, null, 2)}
               </pre>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 p-6 overflow-y-auto bg-gray-50 flex justify-center">
+            <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h2 className="text-lg font-semibold mb-6">Bot Schedule</h2>
+              {schedule && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="checkbox" 
+                      id="isActive" 
+                      checked={schedule.isActive} 
+                      onChange={e => setSchedule({...schedule, isActive: e.target.checked})}
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <label htmlFor="isActive" className="font-medium text-gray-700">Enable Schedule</label>
+                  </div>
+
+                  {schedule.isActive && (
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Schedule Type</label>
+                        <select 
+                          value={schedule.type}
+                          onChange={e => {
+                            const newType = e.target.value;
+                            let cronExpr = schedule.cronExpression;
+                            if (newType === 'hourly') cronExpr = '0 * * * *';
+                            if (newType === 'daily') cronExpr = '0 0 * * *';
+                            if (newType === 'weekly') cronExpr = '0 0 * * 0';
+                            if (newType === 'monthly') cronExpr = '0 0 1 * *';
+                            setSchedule({...schedule, type: newType, cronExpression: cronExpr});
+                          }}
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="manual">Manual Only</option>
+                          <option value="hourly">Hourly</option>
+                          <option value="daily">Daily</option>
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                          <option value="custom_cron">Custom Cron</option>
+                        </select>
+                      </div>
+
+                      {schedule.type !== 'manual' && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Cron Expression</label>
+                            <input 
+                              type="text" 
+                              value={schedule.cronExpression || ''}
+                              onChange={e => setSchedule({...schedule, cronExpression: e.target.value})}
+                              disabled={schedule.type !== 'custom_cron'}
+                              className="w-full p-2 border rounded-md disabled:bg-gray-100 font-mono text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                            <input 
+                              type="text" 
+                              value={schedule.timezone || ''}
+                              onChange={e => setSchedule({...schedule, timezone: e.target.value})}
+                              placeholder="Europe/Istanbul"
+                              className="w-full p-2 border rounded-md"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {schedule.nextRunAt && (
+                    <div className="pt-6 border-t border-gray-100 text-sm text-gray-600">
+                      <p><strong>Next Run:</strong> {new Date(schedule.nextRunAt).toLocaleString()}</p>
+                      {schedule.lastRunAt && <p className="mt-1"><strong>Last Run:</strong> {new Date(schedule.lastRunAt).toLocaleString()}</p>}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

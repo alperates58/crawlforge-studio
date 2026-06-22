@@ -50,6 +50,30 @@ model Bot {
   deletedAt   DateTime?
   botRuns     BotRun[]
   datasets    Dataset[]
+  schedule    BotSchedule?
+}
+
+enum ScheduleType {
+  manual
+  hourly
+  daily
+  weekly
+  monthly
+  custom_cron
+}
+
+model BotSchedule {
+  id             String       @id @default(uuid())
+  botId          String       @unique
+  bot            Bot          @relation(fields: [botId], references: [id])
+  type           ScheduleType @default(manual)
+  cronExpression String?
+  timezone       String       @default("Europe/Istanbul")
+  isActive       Boolean      @default(true)
+  lastRunAt      DateTime?
+  nextRunAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 enum BotRunStatus {
@@ -72,6 +96,7 @@ model BotRun {
   recordsExtracted Int          @default(0)
   filesDownloaded  Int          @default(0)
   errorMessage     String?
+  triggerReason    String       @default("manual") // manual, schedule
   createdAt        DateTime     @default(now())
   stepLogs         BotStepLog[]
   datasets         Dataset[]
