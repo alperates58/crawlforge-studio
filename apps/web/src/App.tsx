@@ -8,6 +8,7 @@ import BotBuilder from './pages/BotBuilder';
 import Datasets from './pages/Datasets';
 import DatasetDetail from './pages/DatasetDetail';
 import Documents from './pages/Documents';
+import DocumentDetail from './pages/DocumentDetail';
 import Settings from './pages/Settings';
 import Runs from './pages/Runs';
 import RunDetail from './pages/RunDetail';
@@ -37,6 +38,7 @@ function App() {
             <Route path="datasets" element={<Datasets />} />
             <Route path="datasets/:id" element={<DatasetDetail />} />
             <Route path="documents" element={<Documents />} />
+            <Route path="documents/:id" element={<DocumentDetail />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

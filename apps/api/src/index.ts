@@ -21,6 +21,9 @@ const botRunsQueue = new Queue('bot-runs', { connection: connection as any });
 app.use(cors());
 app.use(express.json());
 
+// Serve storage directory
+app.use('/storage', express.static('/app/storage'));
+
 // Auth Middleware
 const authenticateToken = (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
@@ -433,6 +436,71 @@ app.post('/api/datasets/:id/reject', authenticateToken, async (req, res) => {
     res.json(dataset);
   } catch (error) {
     res.status(500).json({ error: 'Failed to reject dataset' });
+  }
+});
+
+// Document endpoints
+app.get('/api/documents', authenticateToken, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 50;
+    const skip = (page - 1) * pageSize;
+
+    const { search, mimeType } = req.query;
+
+    const where: any = {};
+    if (mimeType) where.mimeType = mimeType;
+    if (search) {
+      where.filename = { contains: search as string, mode: 'insensitive' };
+    }
+
+    const [total, documents] = await Promise.all([
+      prisma.document.count({ where }),
+      prisma.document.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+        include: {
+          project: { select: { name: true } },
+          dataset: { select: { id: true } }
+        }
+      })
+    ]);
+
+    // map localPath to downloadUrl
+    const safeDocuments = documents.map(doc => {
+      const { localPath, ...rest } = doc;
+      const downloadUrl = localPath.replace('/app/storage', 'http://localhost:3001/storage');
+      return { ...rest, downloadUrl };
+    });
+
+    res.json({ data: safeDocuments, total, page, pageSize });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch documents' });
+  }
+});
+
+app.get('/api/documents/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const document = await prisma.document.findUnique({
+      where: { id },
+      include: {
+        project: true,
+        dataset: true
+      }
+    });
+    
+    if (!document) return res.status(404).json({ error: 'Document not found' });
+    
+    // map localPath to downloadUrl
+    const { localPath, ...safeDocument } = document;
+    const downloadUrl = localPath.replace('/app/storage', 'http://localhost:3001/storage');
+    
+    res.json({ ...safeDocument, downloadUrl });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch document' });
   }
 });
 

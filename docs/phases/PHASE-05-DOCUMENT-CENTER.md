@@ -15,9 +15,9 @@ Download, store and inspect files such as PDF/TDS/SDS.
 
 ## Checklist
 
-- [ ] Download file step
-- [ ] File storage
-- [ ] Metadata save
-- [ ] Document list
-- [ ] PDF text extraction
-- [ ] Link document to dataset
+- [x] Download file step
+- [x] File storage
+- [x] Metadata save
+- [x] Document list
+- [x] PDF text extraction
+- [x] Link document to dataset

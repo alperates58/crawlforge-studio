@@ -6,7 +6,8 @@ export type StepType =
   | 'SCROLL'
   | 'EXTRACT_TEXT'
   | 'EXTRACT_LINKS'
-  | 'SAVE_RECORD';
+  | 'SAVE_RECORD'
+  | 'DOWNLOAD_FILE';
 
 export interface BaseStep {
   id: string; // Unique ID for drag and drop / React keys
@@ -61,6 +62,15 @@ export interface SaveRecordStep extends BaseStep {
   status?: string; // Optional status marker
 }
 
+export interface DownloadFileStep extends BaseStep {
+  type: 'DOWNLOAD_FILE';
+  selector: string;
+  field_name: string;
+  allowed_extensions?: string;
+  required?: boolean;
+  timeout_ms?: number;
+}
+
 export type BotStep = 
   | OpenUrlStep
   | ClickStep
@@ -69,4 +79,5 @@ export type BotStep =
   | ScrollStep
   | ExtractTextStep
   | ExtractLinksStep
-  | SaveRecordStep;
+  | SaveRecordStep
+  | DownloadFileStep;

@@ -32,6 +32,7 @@ model Project {
   deletedAt    DateTime?
   bots         Bot[]
   datasets     Dataset[]
+  documents    Document[]
 }
 
 model Bot {
@@ -110,4 +111,31 @@ model Dataset {
   confidenceScore Float?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  documents       Document[]
+}
+
+enum DocumentStatus {
+  pending
+  ready
+  failed
+}
+
+model Document {
+  id              String         @id @default(uuid())
+  projectId       String?
+  project         Project?       @relation(fields: [projectId], references: [id])
+  datasetId       String?
+  dataset         Dataset?       @relation(fields: [datasetId], references: [id])
+  sourceUrl       String?
+  originalUrl     String?
+  filename        String
+  originalFilename String?
+  mimeType        String?
+  sizeBytes       Int?
+  localPath       String
+  extractedText   String?
+  aiExtractedJson String?
+  status          DocumentStatus @default(pending)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }

@@ -9,6 +9,7 @@ import { scrollHandler } from './handlers/scroll';
 import { extractTextHandler } from './handlers/extractText';
 import { extractLinksHandler } from './handlers/extractLinks';
 import { saveRecordHandler } from './handlers/saveRecord';
+import { downloadFileHandler } from './handlers/downloadFile';
 
 export async function runBot(botRun: any, prisma: PrismaClient) {
   const browser = await chromium.launch({ headless: true });
@@ -99,6 +100,9 @@ async function executeStep(step: any, context: ExecutionContext) {
       break;
     case 'SAVE_RECORD':
       await saveRecordHandler(step, context);
+      break;
+    case 'DOWNLOAD_FILE':
+      await downloadFileHandler(step, context);
       break;
     default:
       throw new Error(`Unsupported step type: ${step.type}`);

@@ -3,7 +3,7 @@
 ## Current Phase
 
 ```txt
-PHASE-04-DATASETS
+PHASE-05-DOCUMENT-CENTER
 ```
 
 ## Current Version
@@ -45,15 +45,20 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 04: Datasets listing page with filters, search, and pagination
 - [x] Phase 04: Dataset Detail page with raw JSON editing
 - [x] Phase 04: CSV streaming export with dynamic columns
+- [x] Phase 05: DOWNLOAD_FILE step in worker with pdf-parse and UUIDs
+- [x] Phase 05: Document entity creation and Dataset linking
+- [x] Phase 05: /storage local storage volume exposure
+- [x] Phase 05: Document Center UI (pagination, search, filter)
+- [x] Phase 05: Document Detail UI with Metadata and Extracted Text tabs
 
 ## In Progress
 
-- [ ] Moving to Phase 05
+- [ ] Moving to Phase 06
 
 ## Next Phase
 
 ```txt
-PHASE-05-DOCUMENT-CENTER
+PHASE-06-AI-EXTRACT
 ```
 
 ## Phase 01 Goal
