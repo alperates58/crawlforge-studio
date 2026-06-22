@@ -139,3 +139,33 @@ model Document {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }
+
+model AiSetting {
+  id              String   @id @default(uuid())
+  providerName    String
+  baseUrl         String
+  encryptedApiKey String
+  model           String
+  temperature     Float
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ExtractionSchema {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  schemaJson  String   // JSON string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PromptTemplate {
+  id                 String   @id @default(uuid())
+  name               String
+  systemPrompt       String
+  userPromptTemplate String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

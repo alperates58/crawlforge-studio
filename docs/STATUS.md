@@ -31,17 +31,11 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 01: Prisma & PostgreSQL setup
 - [x] Phase 01: JWT Auth & API
 - [x] Phase 01: Web UI (Dashboard, Projects, Bots)
-- [x] Phase 02: Bot Builder UI
-- [x] Phase 02: Visual Step editor with form fields
-- [x] Phase 02: Read-only JSON preview
-- [x] Phase 02: API support for saving steps_json
-- [x] Phase 03: Redis + BullMQ integration
-- [x] Phase 03: Playwright Worker Engine
-- [x] Phase 03: Step Handlers (Open URL, Click, Type, Wait, Scroll, Extract, Save)
-- [x] Phase 03: Manual Bot Run execution and reporting
-- [x] Phase 03: Run detail UI with step logs
-- [x] Phase 04: Database schema relations for Datasets
-- [x] Phase 04: API endpoints (list, detail, update, approve/reject, csv export)
+## Completed Phases
+
+- [x] Phase 01: Project setup and monorepo configuration (Turborepo, Next.js, Express, Prisma)
+- [x] Phase 02: Bot Builder core UI and Bot Model creation
+- [x] Phase 03: Worker Engine (Playwright integration, BullMQ queues, execution context)
 - [x] Phase 04: Datasets listing page with filters, search, and pagination
 - [x] Phase 04: Dataset Detail page with raw JSON editing
 - [x] Phase 04: CSV streaming export with dynamic columns
@@ -50,15 +44,16 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 05: /storage local storage volume exposure
 - [x] Phase 05: Document Center UI (pagination, search, filter)
 - [x] Phase 05: Document Detail UI with Metadata and Extracted Text tabs
+- [x] Phase 06A: AI Foundation (AI Settings, Schemas, Prompts, Playground)
 
 ## In Progress
 
-- [ ] Moving to Phase 06
+- [ ] Moving to next AI phases
 
 ## Next Phase
 
 ```txt
-PHASE-06-AI-EXTRACT
+PHASE-06B-WORKER-AI-STEP
 ```
 
 ## Phase 01 Goal

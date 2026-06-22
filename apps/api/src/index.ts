@@ -6,6 +6,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
+import { encrypt } from './utils/encryption';
+import { AiProviderService } from './services/AiProviderService';
 
 dotenv.config();
 
@@ -508,6 +510,165 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(port, () => {
-  console.log(`API running on port ${port}`);
+// AI Settings Endpoint
+app.get('/api/settings/ai', authenticateToken, async (req, res) => {
+  try {
+    const setting = await prisma.aiSetting.findFirst({
+      where: { isActive: true }
+    });
+    if (!setting) {
+      return res.json(null);
+    }
+    const { encryptedApiKey, ...safeSetting } = setting;
+    res.json({ ...safeSetting, apiKeyMasked: '************' + encryptedApiKey.slice(-4) });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch AI setting' });
+  }
 });
+
+app.post('/api/settings/ai', authenticateToken, async (req, res) => {
+  try {
+    if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length !== 32) {
+      return res.status(500).json({ error: 'System is missing ENCRYPTION_KEY or invalid length. Cannot save AI settings safely.' });
+    }
+    
+    const { providerName, baseUrl, apiKey, model, temperature } = req.body;
+    
+    // Inactivate all others
+    await prisma.aiSetting.updateMany({
+      data: { isActive: false }
+    });
+    
+    const encryptedApiKey = encrypt(apiKey);
+    
+    const setting = await prisma.aiSetting.create({
+      data: {
+        providerName,
+        baseUrl,
+        encryptedApiKey,
+        model,
+        temperature,
+        isActive: true
+      }
+    });
+    const { encryptedApiKey: _e, ...safeSetting } = setting;
+    res.json({ ...safeSetting, apiKeyMasked: '************' + encryptedApiKey.slice(-4) });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to save AI setting', details: error.message });
+  }
+});
+
+// Extraction Schemas
+app.get('/api/extraction-schemas', authenticateToken, async (req, res) => {
+  try {
+    const schemas = await prisma.extractionSchema.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(schemas);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch extraction schemas' });
+  }
+});
+
+app.post('/api/extraction-schemas', authenticateToken, async (req, res) => {
+  try {
+    const { name, description, schemaJson } = req.body;
+    const schema = await prisma.extractionSchema.create({
+      data: { name, description, schemaJson }
+    });
+    res.json(schema);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create extraction schema' });
+  }
+});
+
+// Prompt Templates
+app.get('/api/prompt-templates', authenticateToken, async (req, res) => {
+  try {
+    const templates = await prisma.promptTemplate.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(templates);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch prompt templates' });
+  }
+});
+
+app.post('/api/prompt-templates', authenticateToken, async (req, res) => {
+  try {
+    const { name, systemPrompt, userPromptTemplate } = req.body;
+    const template = await prisma.promptTemplate.create({
+      data: { name, systemPrompt, userPromptTemplate }
+    });
+    res.json(template);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create prompt template' });
+  }
+});
+
+// AI Playground
+app.post('/api/ai/playground', authenticateToken, async (req, res) => {
+  try {
+    const { text, schemaId, promptTemplateId } = req.body;
+    
+    const schema = await prisma.extractionSchema.findUnique({ where: { id: schemaId } });
+    if (!schema) return res.status(404).json({ error: 'Schema not found' });
+    
+    const template = await prisma.promptTemplate.findUnique({ where: { id: promptTemplateId } });
+    if (!template) return res.status(404).json({ error: 'Prompt Template not found' });
+    
+    const aiService = new AiProviderService();
+    const result = await aiService.extractStructuredData(text, schema.schemaJson, template.systemPrompt, template.userPromptTemplate);
+    
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: 'AI execution failed', details: error.message });
+  }
+});
+
+// Auto-seed Initial Schema and Template
+async function autoSeed() {
+  const existingSchema = await prisma.extractionSchema.findFirst({
+    where: { name: 'Cosmetic Ingredient Schema' }
+  });
+  if (!existingSchema) {
+    await prisma.extractionSchema.create({
+      data: {
+        name: 'Cosmetic Ingredient Schema',
+        description: 'Default schema for extracting cosmetic raw material data',
+        schemaJson: JSON.stringify({
+          type: "object",
+          properties: {
+            trade_name: { type: "string" },
+            supplier: { type: "string" },
+            inci: { type: "string" },
+            function: { type: "array", items: { type: "string" } },
+            recommended_use_level: { type: "string" },
+            ph_range: { type: "string" },
+            solubility: { type: "string" },
+            applications: { type: "array", items: { type: "string" } },
+            source_confidence: { type: "number" }
+          },
+          required: ["trade_name", "supplier", "inci"]
+        }, null, 2)
+      }
+    });
+    console.log('Seeded Cosmetic Ingredient Schema');
+  }
+
+  const existingTemplate = await prisma.promptTemplate.findFirst({
+    where: { name: 'Cosmetic TDS Extractor' }
+  });
+  if (!existingTemplate) {
+    await prisma.promptTemplate.create({
+      data: {
+        name: 'Cosmetic TDS Extractor',
+        systemPrompt: 'You are an expert chemist. Extract cosmetic raw material specifications from the provided text into the required JSON schema.',
+        userPromptTemplate: 'Please extract data from the following text:\n\n{{text}}'
+      }
+    });
+    console.log('Seeded Cosmetic TDS Extractor Prompt Template');
+  }
+}
+
+autoSeed().then(() => {
+  app.listen(port, () => {
+    console.log(`API running on port ${port}`);
+  });
+}).catch(console.error);
