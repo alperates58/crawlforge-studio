@@ -47,6 +47,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 05: Document Detail UI with Metadata and Extracted Text tabs
 - [x] Phase 06A: AI Foundation (AI Settings, Schemas, Prompts, Playground)
 - [x] Phase 06B: AI Jobs and Review (ai-worker, Manual Review, UI integration)
+- [x] Phase 07: Loop Links and Pagination (Deep scraping logic, Isolated Tabs, DB Logging)
 
 ## In Progress
 
@@ -55,7 +56,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 ## Next Phase
 
 ```txt
-PHASE-07-KNOWLEDGE-GRAPH
+PHASE-08-KNOWLEDGE-GRAPH
 ```
 
 ## Phase 01 Goal

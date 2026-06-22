@@ -216,6 +216,142 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
           </div>
         );
 
+      case 'DOWNLOAD_FILE':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Selector (for href/src)</label>
+              <input
+                type="text"
+                value={step.selector || ''}
+                onChange={(e) => handleChange('selector', e.target.value)}
+                placeholder="a.download-link"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.selector ? 'border-red-300' : 'border-gray-300'}`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Field Name (for metadata)</label>
+              <input
+                type="text"
+                value={step.field_name || ''}
+                onChange={(e) => handleChange('field_name', e.target.value)}
+                placeholder="invoiceFile"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.field_name ? 'border-red-300' : 'border-gray-300'}`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Allowed Extensions (comma separated)</label>
+              <input
+                type="text"
+                value={step.allowed_extensions || ''}
+                onChange={(e) => handleChange('allowed_extensions', e.target.value)}
+                placeholder="pdf,docx"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+        );
+
+      case 'LOOP_LINKS':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Source Field (Array of URLs)</label>
+              <input
+                type="text"
+                value={step.source_field || ''}
+                onChange={(e) => handleChange('source_field', e.target.value)}
+                placeholder="e.g. productLinks"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.source_field ? 'border-red-300' : 'border-gray-300'}`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Items</label>
+              <input
+                type="number"
+                value={step.max_items || 50}
+                onChange={(e) => handleChange('max_items', parseInt(e.target.value) || 50)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nested Steps (JSON Editor)</label>
+              <textarea
+                value={JSON.stringify(step.steps || [], null, 2)}
+                onChange={(e) => {
+                  try {
+                    handleChange('steps', JSON.parse(e.target.value));
+                  } catch (err) {}
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md h-40 font-mono text-sm"
+              />
+            </div>
+          </div>
+        );
+
+      case 'PAGINATION':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Next Button Selector</label>
+              <input
+                type="text"
+                value={step.next_selector || ''}
+                onChange={(e) => handleChange('next_selector', e.target.value)}
+                placeholder="a.next-page"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.next_selector ? 'border-red-300' : 'border-gray-300'}`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Pages</label>
+              <input
+                type="number"
+                value={step.max_pages || 10}
+                onChange={(e) => handleChange('max_pages', parseInt(e.target.value) || 10)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="stop_when_selector_missing"
+                checked={step.stop_when_selector_missing ?? true}
+                onChange={(e) => handleChange('stop_when_selector_missing', e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="stop_when_selector_missing" className="text-sm text-gray-700">Stop when selector is missing</label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nested Steps per Page (JSON Editor)</label>
+              <textarea
+                value={JSON.stringify(step.steps_per_page || [], null, 2)}
+                onChange={(e) => {
+                  try {
+                    handleChange('steps_per_page', JSON.parse(e.target.value));
+                  } catch (err) {}
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md h-40 font-mono text-sm"
+              />
+            </div>
+          </div>
+        );
+
+      case 'GO_TO_LINK':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">URL Field Name</label>
+              <input
+                type="text"
+                value={step.url_field || ''}
+                onChange={(e) => handleChange('url_field', e.target.value)}
+                placeholder="e.g. currentItemUrl"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.url_field ? 'border-red-300' : 'border-gray-300'}`}
+              />
+            </div>
+          </div>
+        );
+
       default:
         return <div>Unknown step type</div>;
     }

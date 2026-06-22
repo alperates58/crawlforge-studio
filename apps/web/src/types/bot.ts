@@ -7,7 +7,10 @@ export type StepType =
   | 'EXTRACT_TEXT'
   | 'EXTRACT_LINKS'
   | 'SAVE_RECORD'
-  | 'DOWNLOAD_FILE';
+  | 'DOWNLOAD_FILE'
+  | 'LOOP_LINKS'
+  | 'PAGINATION'
+  | 'GO_TO_LINK';
 
 export interface BaseStep {
   id: string; // Unique ID for drag and drop / React keys
@@ -71,6 +74,26 @@ export interface DownloadFileStep extends BaseStep {
   timeout_ms?: number;
 }
 
+export interface LoopLinksStep extends BaseStep {
+  type: 'LOOP_LINKS';
+  source_field: string;
+  max_items?: number;
+  steps: BotStep[];
+}
+
+export interface PaginationStep extends BaseStep {
+  type: 'PAGINATION';
+  next_selector: string;
+  max_pages?: number;
+  stop_when_selector_missing?: boolean;
+  steps_per_page: BotStep[];
+}
+
+export interface GoToLinkStep extends BaseStep {
+  type: 'GO_TO_LINK';
+  url_field: string;
+}
+
 export type BotStep = 
   | OpenUrlStep
   | ClickStep
@@ -80,4 +103,7 @@ export type BotStep =
   | ExtractTextStep
   | ExtractLinksStep
   | SaveRecordStep
-  | DownloadFileStep;
+  | DownloadFileStep
+  | LoopLinksStep
+  | PaginationStep
+  | GoToLinkStep;

@@ -9,6 +9,9 @@ interface StepLog {
   stepType: string;
   status: string;
   message: string | null;
+  pageIndex: number | null;
+  itemIndex: number | null;
+  parentStepIndex: number | null;
   createdAt: string;
 }
 
@@ -130,7 +133,7 @@ export default function RunDetail() {
           ) : (
             <ul className="divide-y divide-gray-100">
               {run.stepLogs.map((log) => (
-                <li key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <li key={log.id} className="p-4 hover:bg-gray-50 transition-colors" style={{ paddingLeft: log.parentStepIndex != null ? '2rem' : '1rem' }}>
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0">
                       {log.status === 'succeeded' ? (
@@ -140,8 +143,19 @@ export default function RunDetail() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        Step {log.stepIndex + 1}: <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded ml-1">{log.stepType}</span>
+                      <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        <span>Step {log.stepIndex + 1}:</span>
+                        <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">{log.stepType}</span>
+                        {log.pageIndex != null && (
+                          <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded-full">
+                            Page {log.pageIndex}
+                          </span>
+                        )}
+                        {log.itemIndex != null && (
+                          <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">
+                            Item {log.itemIndex}
+                          </span>
+                        )}
                       </p>
                       {log.message && (
                         <p className="text-sm text-red-600 mt-1">{log.message}</p>

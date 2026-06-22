@@ -98,10 +98,13 @@ export default function BotBuilder() {
     if (type === 'TYPE') newStep.value = '';
     if (type === 'WAIT') newStep.duration_ms = 1000;
     if (type === 'SCROLL') newStep.direction = 'down';
-    if (type === 'EXTRACT_TEXT' || type === 'EXTRACT_LINKS') {
-      newStep.field_name = '';
-      newStep.selector = '';
-    }
+    if (type === 'EXTRACT_TEXT') newStep.field_name = '';
+    if (type === 'EXTRACT_LINKS') { newStep.field_name = ''; newStep.selector = ''; }
+    if (type === 'SAVE_RECORD') newStep.dataset_id = '';
+    if (type === 'DOWNLOAD_FILE') { newStep.selector = ''; newStep.field_name = ''; newStep.allowed_extensions = 'pdf,docx,xlsx,png,jpg'; }
+    if (type === 'LOOP_LINKS') { newStep.source_field = ''; newStep.max_items = 50; newStep.steps = []; }
+    if (type === 'PAGINATION') { newStep.next_selector = ''; newStep.max_pages = 10; newStep.stop_when_selector_missing = true; newStep.steps_per_page = []; }
+    if (type === 'GO_TO_LINK') newStep.url_field = '';
     
     setSteps([...steps, newStep]);
     setSelectedStepId(newStep.id);

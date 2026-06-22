@@ -87,6 +87,9 @@ model BotStepLog {
   message        String?
   dataJson       String?
   screenshotPath String?
+  pageIndex      Int?
+  itemIndex      Int?
+  parentStepIndex Int?
   createdAt      DateTime @default(now())
 }
 

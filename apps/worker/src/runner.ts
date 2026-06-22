@@ -10,6 +10,9 @@ import { extractTextHandler } from './handlers/extractText';
 import { extractLinksHandler } from './handlers/extractLinks';
 import { saveRecordHandler } from './handlers/saveRecord';
 import { downloadFileHandler } from './handlers/downloadFile';
+import { goToLinkHandler } from './handlers/goToLink';
+import { paginationHandler } from './handlers/pagination';
+import { loopLinksHandler } from './handlers/loopLinks';
 
 export async function runBot(botRun: any, prisma: PrismaClient) {
   const browser = await chromium.launch({ headless: true });
@@ -32,44 +35,51 @@ export async function runBot(botRun: any, prisma: PrismaClient) {
     }
   };
 
-  try {
-    const steps = botRun.bot.stepsJson ? JSON.parse(botRun.bot.stepsJson) : [];
-    
+  context.executeSteps = async (steps: any[], ctx: ExecutionContext, indices?: { pageIndex?: number, itemIndex?: number, parentStepIndex?: number }) => {
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
       console.log(`[Worker] Executing step ${i}: ${step.type}`);
       
       try {
-        await executeStep(step, context);
+        await executeStep(step, ctx);
         
         // Log success
-        await prisma.botStepLog.create({
+        await ctx.prisma.botStepLog.create({
           data: {
-            runId: botRun.id,
+            runId: ctx.runId,
             stepIndex: i,
             stepType: step.type,
             status: 'succeeded',
+            pageIndex: indices?.pageIndex,
+            itemIndex: indices?.itemIndex,
+            parentStepIndex: indices?.parentStepIndex,
           }
         });
         
       } catch (err: any) {
         // Log failure
-        await prisma.botStepLog.create({
+        await ctx.prisma.botStepLog.create({
           data: {
-            runId: botRun.id,
+            runId: ctx.runId,
             stepIndex: i,
             stepType: step.type,
             status: 'failed',
             message: err.message || 'Unknown error in step execution',
+            pageIndex: indices?.pageIndex,
+            itemIndex: indices?.itemIndex,
+            parentStepIndex: indices?.parentStepIndex,
           }
         });
         
         throw new Error(`Step ${i} (${step.type}) failed: ${err.message}`);
       }
     }
-    
+  };
+
+  try {
+    const steps = botRun.bot.stepsJson ? JSON.parse(botRun.bot.stepsJson) : [];
+    await context.executeSteps(steps, context);
     return context.stats;
-    
   } finally {
     await browser.close();
   }
@@ -97,6 +107,21 @@ async function executeStep(step: any, context: ExecutionContext) {
       break;
     case 'EXTRACT_LINKS':
       await extractLinksHandler(step, context);
+      break;
+    case 'SAVE_RECORD':
+      await saveRecordHandler(step, context);
+      break;
+    case 'DOWNLOAD_FILE':
+      await downloadFileHandler(step, context);
+      break;
+    case 'GO_TO_LINK':
+      await goToLinkHandler(step, context);
+      break;
+    case 'PAGINATION':
+      await paginationHandler(step, context);
+      break;
+    case 'LOOP_LINKS':
+      await loopLinksHandler(step, context);
       break;
     case 'SAVE_RECORD':
       await saveRecordHandler(step, context);

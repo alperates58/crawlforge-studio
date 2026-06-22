@@ -16,6 +16,7 @@ export interface ExecutionContext {
     pagesVisited: number;
     recordsExtracted: number;
   };
+  executeSteps?: (steps: any[], context: ExecutionContext, indices?: { pageIndex?: number, itemIndex?: number, parentStepIndex?: number }) => Promise<void>;
 }
 
 export type StepHandler = (step: any, context: ExecutionContext) => Promise<void>;

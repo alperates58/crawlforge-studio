@@ -19,7 +19,11 @@ const STEP_TYPES: { type: StepType; label: string }[] = [
   { type: 'SCROLL', label: 'Scroll' },
   { type: 'EXTRACT_TEXT', label: 'Extract Text' },
   { type: 'EXTRACT_LINKS', label: 'Extract Links' },
-  { type: 'SAVE_RECORD', label: 'Save Record' }
+  { type: 'SAVE_RECORD', label: 'Save Record' },
+  { type: 'DOWNLOAD_FILE', label: 'Download File' },
+  { type: 'LOOP_LINKS', label: 'Loop Links' },
+  { type: 'PAGINATION', label: 'Pagination' },
+  { type: 'GO_TO_LINK', label: 'Go To Link' }
 ];
 
 export default function StepList({
@@ -42,6 +46,10 @@ export default function StepList({
       case 'EXTRACT_TEXT': return step.field_name ? `Extract ${step.field_name}` : 'Extract Text';
       case 'EXTRACT_LINKS': return step.field_name ? `Extract links as ${step.field_name}` : 'Extract Links';
       case 'SAVE_RECORD': return 'Save Record';
+      case 'DOWNLOAD_FILE': return step.field_name ? `Download ${step.field_name}` : 'Download File';
+      case 'LOOP_LINKS': return step.source_field ? `Loop over ${step.source_field}` : 'Loop Links';
+      case 'PAGINATION': return step.next_selector ? `Paginate via ${step.next_selector}` : 'Pagination';
+      case 'GO_TO_LINK': return step.url_field ? `Go to ${step.url_field}` : 'Go To Link';
       default: return 'Unknown Step';
     }
   };
@@ -55,6 +63,10 @@ export default function StepList({
       case 'WAIT': return !step.duration_ms || step.duration_ms <= 0;
       case 'EXTRACT_TEXT': return !step.field_name?.trim() || !step.selector?.trim();
       case 'EXTRACT_LINKS': return !step.field_name?.trim() || !step.selector?.trim();
+      case 'DOWNLOAD_FILE': return !step.selector?.trim() || !step.field_name?.trim() || !step.allowed_extensions?.trim();
+      case 'LOOP_LINKS': return !step.source_field?.trim();
+      case 'PAGINATION': return !step.next_selector?.trim();
+      case 'GO_TO_LINK': return !step.url_field?.trim();
       default: return false; // Scroll and Save Record have defaults/no requirements
     }
   };
