@@ -19,6 +19,7 @@ const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
 const botRunsQueue = new Queue('bot-runs', { connection: connection as any });
+const aiJobsQueue = new Queue('ai-jobs', { connection: connection as any });
 
 app.use(cors());
 app.use(express.json());
@@ -619,6 +620,119 @@ app.post('/api/ai/playground', authenticateToken, async (req, res) => {
     res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: 'AI execution failed', details: error.message });
+  }
+});
+
+// AI Jobs
+app.get('/api/ai-jobs', authenticateToken, async (req, res) => {
+  try {
+    const jobs = await prisma.aiJob.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        document: true,
+        dataset: true,
+        extractionResult: true
+      }
+    });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch AI jobs' });
+  }
+});
+
+app.get('/api/ai-jobs/:id', authenticateToken, async (req, res) => {
+  try {
+    const job = await prisma.aiJob.findUnique({
+      where: { id: req.params.id },
+      include: {
+        document: true,
+        dataset: true,
+        extractionResult: true
+      }
+    });
+    if (!job) return res.status(404).json({ error: 'Not found' });
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch job' });
+  }
+});
+
+app.post('/api/ai-jobs', authenticateToken, async (req, res) => {
+  try {
+    const { documentId, datasetId, schemaId, promptTemplateId } = req.body;
+    
+    // Check if AiSetting is configured
+    const setting = await prisma.aiSetting.findFirst({ where: { isActive: true } });
+    if (!setting) return res.status(400).json({ error: 'Active AI Setting is required' });
+
+    const job = await prisma.aiJob.create({
+      data: {
+        documentId,
+        datasetId,
+        schemaId,
+        promptTemplateId,
+        providerName: setting.providerName,
+        model: setting.model,
+        status: 'pending'
+      }
+    });
+    res.json(job);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to create AI job', details: error.message });
+  }
+});
+
+app.post('/api/ai-jobs/:id/run', authenticateToken, async (req, res) => {
+  try {
+    const job = await prisma.aiJob.findUnique({ where: { id: req.params.id } });
+    if (!job) return res.status(404).json({ error: 'Not found' });
+    
+    if (job.status === 'running') {
+      return res.status(400).json({ error: 'Job is already running' });
+    }
+
+    await prisma.aiJob.update({
+      where: { id: job.id },
+      data: { status: 'running' } // BullMQ picks it up or we just queue it
+    });
+
+    await aiJobsQueue.add('extract', { aiJobId: job.id });
+
+    res.json({ message: 'Job queued successfully' });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to queue job', details: error.message });
+  }
+});
+
+app.post('/api/ai-jobs/:id/approve', authenticateToken, async (req, res) => {
+  try {
+    const job = await prisma.aiJob.findUnique({ where: { id: req.params.id }, include: { extractionResult: true } });
+    if (!job || !job.extractionResult) return res.status(404).json({ error: 'Result not found' });
+
+    await prisma.extractionResult.update({
+      where: { id: job.extractionResult.id },
+      data: { reviewStatus: 'approved' }
+    });
+    
+    res.json({ message: 'Approved' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to approve' });
+  }
+});
+
+app.post('/api/ai-jobs/:id/reject', authenticateToken, async (req, res) => {
+  try {
+    const job = await prisma.aiJob.findUnique({ where: { id: req.params.id }, include: { extractionResult: true } });
+    if (!job || !job.extractionResult) return res.status(404).json({ error: 'Result not found' });
+
+    await prisma.extractionResult.update({
+      where: { id: job.extractionResult.id },
+      data: { reviewStatus: 'rejected' }
+    });
+    
+    res.json({ message: 'Rejected' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to reject' });
   }
 });
 

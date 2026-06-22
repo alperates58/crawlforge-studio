@@ -26,6 +26,7 @@ export default function Layout() {
     { name: 'Runs', path: '/runs', icon: Activity },
     { name: 'Datasets', path: '/datasets', icon: Database },
     { name: 'Documents', path: '/documents', icon: FileText },
+    { name: 'AI Jobs', path: '/ai-jobs', icon: Activity },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 

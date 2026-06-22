@@ -55,6 +55,21 @@ services:
     networks:
       - crawlforge_net
 
+  ai-worker:
+    build:
+      context: .
+      dockerfile: apps/ai-worker/Dockerfile
+    container_name: crawlforge-ai-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - api
+    networks:
+      - crawlforge_net
+
   web:
     build:
       context: .

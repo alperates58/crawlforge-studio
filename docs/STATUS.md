@@ -31,6 +31,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 01: Prisma & PostgreSQL setup
 - [x] Phase 01: JWT Auth & API
 - [x] Phase 01: Web UI (Dashboard, Projects, Bots)
+
 ## Completed Phases
 
 - [x] Phase 01: Project setup and monorepo configuration (Turborepo, Next.js, Express, Prisma)
@@ -45,15 +46,16 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 05: Document Center UI (pagination, search, filter)
 - [x] Phase 05: Document Detail UI with Metadata and Extracted Text tabs
 - [x] Phase 06A: AI Foundation (AI Settings, Schemas, Prompts, Playground)
+- [x] Phase 06B: AI Jobs and Review (ai-worker, Manual Review, UI integration)
 
 ## In Progress
 
-- [ ] Moving to next AI phases
+- [ ] Next features
 
 ## Next Phase
 
 ```txt
-PHASE-06B-WORKER-AI-STEP
+PHASE-07-KNOWLEDGE-GRAPH
 ```
 
 ## Phase 01 Goal
