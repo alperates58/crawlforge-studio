@@ -1,26 +1,26 @@
-FROM node:20-alpine
-
-# Install OS-level dependencies for building and OCR (though tesseract.js uses pure JS/WASM by default, standard libs are safe)
-RUN apk add --no-cache libc6-compat
+FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
-# Copy root configurations
-COPY package*.json ./
+COPY package.json package-lock.json* ./
 COPY tsconfig.base.json ./
 
-# Copy the specific workspaces needed
 COPY packages/database ./packages/database
 COPY apps/ocr-worker ./apps/ocr-worker
 
-# Install dependencies
-RUN npm ci
+RUN npm install
+RUN npm run build --workspace=@crawlforge/database
+RUN npm run build --workspace=@crawlforge/ocr-worker
 
-# Generate Prisma client
-RUN cd packages/database && npx prisma generate
+FROM node:20-bookworm-slim
 
-# Build ocr-worker
-RUN cd apps/ocr-worker && npm run build
+WORKDIR /app
 
-# Start
-CMD ["node", "apps/ocr-worker/dist/index.js"]
+RUN apt-get update && apt-get install -y openssl
+
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/database ./packages/database
+COPY --from=builder /app/apps/ocr-worker ./apps/ocr-worker
+
+CMD ["npm", "run", "start", "--workspace=@crawlforge/ocr-worker"]
