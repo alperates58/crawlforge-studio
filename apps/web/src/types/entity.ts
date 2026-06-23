@@ -1,5 +1,5 @@
 import { Dataset } from './dataset';
-import { Document } from './document';
+import { DocumentType } from './document';
 
 export interface Entity {
   id: string;
@@ -42,6 +42,6 @@ export interface EntitySource {
   createdAt: string;
 
   dataset?: Dataset;
-  document?: Document;
+  document?: DocumentType;
   aiJob?: any; // Add specific ai job type if necessary
 }

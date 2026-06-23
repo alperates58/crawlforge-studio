@@ -8,8 +8,7 @@ export default function Entities() {
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [page] = useState(1);
 
   const fetchEntities = async () => {
     try {
@@ -20,7 +19,6 @@ export default function Entities() {
       if (res.ok) {
         const json = await res.json();
         setEntities(json.data);
-        setTotal(json.total);
       }
     } catch (error) {
       console.error(error);
@@ -42,7 +40,6 @@ export default function Entities() {
       if (res.ok) {
         const json = await res.json();
         setEntities(json);
-        setTotal(json.length);
       }
     } catch (error) {
       console.error(error);
