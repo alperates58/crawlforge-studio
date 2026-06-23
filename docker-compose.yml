@@ -112,6 +112,17 @@ services:
       - crawlforge_net
     ports:
       - "3002:3002"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.crawlforge-recorder.entrypoints=https'
+      - 'traefik.http.routers.crawlforge-recorder.rule=Host(`databot.alperates.com.tr`) && PathPrefix(`/recorder-ws`)'
+      - 'traefik.http.routers.crawlforge-recorder.priority=100'
+      - 'traefik.http.routers.crawlforge-recorder.middlewares=crowdsec@file'
+      - 'traefik.http.routers.crawlforge-recorder.service=crawlforge-recorder'
+      - 'traefik.http.routers.crawlforge-recorder.tls=true'
+      - 'traefik.http.routers.crawlforge-recorder.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.crawlforge-recorder.loadbalancer.server.port=3002'
+      - 'traefik.docker.network=coolify'
 
   ocr-worker:
     build:
