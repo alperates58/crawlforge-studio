@@ -163,6 +163,13 @@ enum ReviewStatus {
   rejected
 }
 
+enum OcrStatus {
+  pending
+  running
+  completed
+  failed
+}
+
 model Document {
   id              String         @id @default(uuid())
   projectId       String?
@@ -178,6 +185,8 @@ model Document {
   localPath       String
   extractedText   String?
   aiExtractedJson String?
+  ocrText         String?
+  ocrStatus       OcrStatus      @default(pending)
   status          DocumentStatus @default(pending)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt

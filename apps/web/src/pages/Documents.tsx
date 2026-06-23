@@ -159,12 +159,22 @@ export default function Documents() {
                       {formatBytes(doc.sizeBytes)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        doc.status === 'ready' ? 'bg-green-100 text-green-800' : 
-                        doc.status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {doc.status}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full w-fit ${
+                          doc.status === 'ready' ? 'bg-green-100 text-green-800' : 
+                          doc.status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {doc.status}
+                        </span>
+                        {doc.ocrStatus && doc.ocrStatus !== 'pending' && (
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full w-fit ${
+                            doc.ocrStatus === 'completed' ? 'bg-green-100 text-green-800' : 
+                            doc.ocrStatus === 'failed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            OCR: {doc.ocrStatus}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(doc.createdAt).toLocaleDateString()}

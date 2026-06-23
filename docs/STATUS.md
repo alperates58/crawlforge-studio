@@ -3,18 +3,18 @@
 ## Current Phase
 
 ```txt
-PHASE-10-BROWSER-RECORDER
+PHASE-12-OCR-AND-IMAGE-EXTRACTION
 ```
 
 ## Current Version
 
 ```txt
-0.10.0
+0.12.0
 ```
 
 ## Project State
 
-Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots. Production hardening is complete (rate limits, retries, cleanup, metrics, health). Browser Recorder provides CDP Screencast-based remote browsing and click/type step recording inside the web UI.
+Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots. Production hardening is complete (rate limits, retries, cleanup, metrics, health). Browser Recorder provides CDP Screencast-based remote browsing and click/type step recording inside the web UI. Stabilization for production deployment is completed. OCR Worker enables extracting text from image documents.
 
 ## Completed
 
@@ -52,6 +52,9 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 09: Production Hardening (Rate limits, Retries, Concurrency, System Metrics, Cleanup Jobs)
 - [x] Phase 10: Browser Recorder (CDP Screencast, Interactive Visual Recording, Intelligent Selectors)
 
+- [x] Phase 11: Stabilization (Frontend API Base URL routing for production)
+- [x] Phase 12: OCR and Image Extraction (Tesseract.js worker, UI badges and retry mechanisms)
+
 ## In Progress
 
 - [ ] Next features
@@ -59,7 +62,7 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 ## Next Phase
 
 ```txt
-PHASE-11-DASHBOARD-AND-ANALYTICS
+PHASE-13-KNOWLEDGE-GRAPH
 ```
 
 ## Phase 01 Goal

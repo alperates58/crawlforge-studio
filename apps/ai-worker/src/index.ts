@@ -37,7 +37,11 @@ const worker = new Worker('ai-jobs', async (job) => {
     let sourceText = '';
     if (aiJob.documentId) {
       const doc = await prisma.document.findUnique({ where: { id: aiJob.documentId } });
-      if (doc?.extractedText) sourceText = doc.extractedText;
+      if (doc?.extractedText) {
+        sourceText = doc.extractedText;
+      } else if (doc?.ocrText) {
+        sourceText = doc.ocrText;
+      }
     } else if (aiJob.datasetId) {
       const ds = await prisma.dataset.findUnique({ where: { id: aiJob.datasetId } });
       if (ds?.dataJson) sourceText = ds.dataJson;

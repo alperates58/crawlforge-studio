@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
-import { ArrowLeft, Download, FileText, Database } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Database, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { DocumentType } from '../types/document';
 
 export default function DocumentDetail() {
@@ -12,7 +12,7 @@ export default function DocumentDetail() {
   const [document, setDocument] = useState<DocumentType | null>(null);
   const [loading, setLoading] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<'metadata' | 'extracted'>('metadata');
+  const [activeTab, setActiveTab] = useState<'metadata' | 'extracted' | 'ocr'>('metadata');
 
   const fetchDocument = async () => {
     try {
@@ -26,6 +26,19 @@ export default function DocumentDetail() {
       navigate('/documents');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetryOcr = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_BASE_URL}/documents/${id}/retry-ocr`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('OCR job queued successfully');
+      fetchDocument();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to queue OCR job');
     }
   };
 
@@ -86,6 +99,13 @@ export default function DocumentDetail() {
           >
             <FileText className="w-4 h-4 mr-2" />
             Extracted Text
+          </button>
+          <button
+            onClick={() => setActiveTab('ocr')}
+            className={`px-6 py-4 text-sm font-medium border-b-2 flex items-center ${activeTab === 'ocr' ? 'border-indigo-500 text-indigo-600 bg-white' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+          >
+            <ImageIcon className="w-4 h-4 mr-2" />
+            OCR Text
           </button>
         </div>
 
@@ -178,6 +198,42 @@ export default function DocumentDetail() {
                 <pre className="text-sm text-gray-800 whitespace-pre-wrap font-sans">
                   {document.extractedText || <span className="text-gray-400 italic">No text extracted or unsupported format.</span>}
                 </pre>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ocr' && (
+            <div className="h-full flex flex-col">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Text extracted via Optical Character Recognition (OCR).
+                  </p>
+                  <div className="mt-2 flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-700">Status:</span>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      document.ocrStatus === 'completed' ? 'bg-green-100 text-green-800' : 
+                      document.ocrStatus === 'failed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {document.ocrStatus || 'none'}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleRetryOcr}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retry OCR
+                </button>
+              </div>
+              <div className="bg-gray-50 rounded-md border border-gray-200 p-4 flex-1 overflow-auto max-h-[500px]">
+                <textarea 
+                  className="w-full h-full min-h-[300px] text-sm text-gray-800 font-sans bg-transparent resize-none focus:outline-none"
+                  readOnly
+                  value={document.ocrText || ''}
+                  placeholder="No OCR text available."
+                />
               </div>
             </div>
           )}

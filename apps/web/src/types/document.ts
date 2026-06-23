@@ -1,4 +1,5 @@
 export type DocumentStatus = 'pending' | 'ready' | 'failed';
+export type OcrStatus = 'pending' | 'running' | 'completed' | 'failed';
 
 export interface DocumentType {
   id: string;
@@ -16,6 +17,8 @@ export interface DocumentType {
   downloadUrl?: string;
   extractedText?: string;
   aiExtractedJson?: string;
+  ocrText?: string;
+  ocrStatus?: OcrStatus;
   status: DocumentStatus;
   createdAt: string;
   updatedAt: string;

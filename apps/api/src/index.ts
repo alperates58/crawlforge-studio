@@ -22,6 +22,7 @@ const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
 const botRunsQueue = new Queue('bot-runs', { connection: connection as any });
 const aiJobsQueue = new Queue('ai-jobs', { connection: connection as any });
+const ocrJobsQueue = new Queue('ocr-jobs', { connection: connection as any });
 
 app.use(cors());
 app.use(express.json());
@@ -697,6 +698,28 @@ app.get('/api/documents/:id', authenticateToken, async (req, res) => {
     res.json({ ...safeDocument, downloadUrl });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch document' });
+  }
+});
+
+app.post('/api/documents/:id/retry-ocr', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const document = await prisma.document.findUnique({ where: { id } });
+    if (!document) return res.status(404).json({ error: 'Document not found' });
+    
+    if (!document.mimeType?.startsWith('image/')) {
+      return res.status(400).json({ error: 'Only image documents can be sent to OCR' });
+    }
+
+    await prisma.document.update({
+      where: { id },
+      data: { ocrStatus: 'pending' }
+    });
+
+    await ocrJobsQueue.add('OCR_JOB', { documentId: id });
+    res.json({ success: true, message: 'OCR job queued' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to queue OCR job' });
   }
 });
 

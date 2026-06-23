@@ -2,6 +2,10 @@ import { ExecutionContext, StepHandler } from '../types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { Queue } from 'bullmq';
+import { connection } from '../index';
+
+const ocrJobsQueue = new Queue('ocr-jobs', { connection: connection as any });
 import pdfParse from 'pdf-parse';
 
 export const downloadFileHandler: StepHandler = async (step, context) => {
@@ -49,6 +53,8 @@ export const downloadFileHandler: StepHandler = async (step, context) => {
     else if (ext === '.xlsx') mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     else if (ext === '.png') mimeType = 'image/png';
     else if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+    else if (ext === '.webp') mimeType = 'image/webp';
+    else if (ext === '.tif' || ext === '.tiff') mimeType = 'image/tiff';
 
     const sizeBytes = fs.statSync(localPath).size;
 
@@ -91,6 +97,12 @@ export const downloadFileHandler: StepHandler = async (step, context) => {
     if ((context.stats as any).filesDownloaded !== undefined) {
       (context.stats as any).filesDownloaded += 1;
     }
+
+    // Trigger OCR if it's an image
+    if (mimeType.startsWith('image/')) {
+      await ocrJobsQueue.add('OCR_JOB', { documentId: documentRecord.id });
+    }
+
 
   } catch (err: any) {
     if (isRequired) {
