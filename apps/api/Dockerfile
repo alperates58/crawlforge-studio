@@ -28,4 +28,4 @@ COPY --from=builder /app/apps/api ./apps/api
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "npm run db:push --workspace=@crawlforge/database && npm run seed --workspace=@crawlforge/api && npm run start --workspace=@crawlforge/api"]
+CMD ["sh", "-c", "npm run db:push --workspace=@crawlforge/database && npm run seed:prod --workspace=@crawlforge/api && npm run start --workspace=@crawlforge/api"]
