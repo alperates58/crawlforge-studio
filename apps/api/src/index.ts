@@ -982,7 +982,7 @@ app.post('/api/recorder/sessions', authenticateToken, async (req, res) => {
     if (activeSession) {
       await prisma.recorderSession.update({
         where: { id: activeSession.id },
-        data: { status: 'failed', errorMessage: 'Terminated by new session request' }
+        data: { status: 'failed' }
       });
     }
 
