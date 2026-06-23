@@ -980,7 +980,10 @@ app.post('/api/recorder/sessions', authenticateToken, async (req, res) => {
     });
 
     if (activeSession) {
-      return res.status(400).json({ error: 'You already have an active recording session', session: activeSession });
+      await prisma.recorderSession.update({
+        where: { id: activeSession.id },
+        data: { status: 'failed', errorMessage: 'Terminated by new session request' }
+      });
     }
 
     const session = await prisma.recorderSession.create({
