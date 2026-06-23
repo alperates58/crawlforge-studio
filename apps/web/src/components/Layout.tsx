@@ -9,7 +9,8 @@ import {
   Settings,
   LogOut,
   Calendar,
-  Server
+  Server,
+  Network
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -30,6 +31,7 @@ export default function Layout() {
     { name: 'Datasets', path: '/datasets', icon: Database },
     { name: 'Documents', path: '/documents', icon: FileText },
     { name: 'AI Jobs', path: '/ai-jobs', icon: Activity },
+    { name: 'Knowledge Graph', path: '/entities', icon: Network },
     { name: 'Settings', path: '/settings', icon: Settings },
     { name: 'System Settings', path: '/system-settings', icon: Server },
   ];

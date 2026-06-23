@@ -142,6 +142,7 @@ model Dataset {
   updatedAt       DateTime      @updatedAt
   documents       Document[]
   aiJobs          AiJob[]
+  entitySources   EntitySource[]
 }
 
 enum DocumentStatus {
@@ -191,6 +192,7 @@ model Document {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   aiJobs          AiJob[]
+  entitySources   EntitySource[]
 }
 
 model AiSetting {
@@ -244,6 +246,7 @@ model AiJob {
   document         Document?   @relation(fields: [documentId], references: [id])
   dataset          Dataset?    @relation(fields: [datasetId], references: [id])
   extractionResult ExtractionResult?
+  entitySources    EntitySource[]
 }
 
 model ExtractionResult {
@@ -288,4 +291,44 @@ model RecorderSession {
   stoppedAt         DateTime?
 }
 
+model Entity {
+  id              String         @id @default(uuid())
+  entityType      String
+  entityName      String
+  normalizedName  String
+  metadataJson    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
+  sources         EntitySource[]
+  sourceRelations Relation[]     @relation("SourceRelations")
+  targetRelations Relation[]     @relation("TargetRelations")
+
+  @@unique([entityType, normalizedName])
+}
+
+model Relation {
+  id              String   @id @default(uuid())
+  sourceEntityId  String
+  targetEntityId  String
+  relationType    String
+  confidenceScore Float?
+  createdAt       DateTime @default(now())
+
+  sourceEntity    Entity   @relation("SourceRelations", fields: [sourceEntityId], references: [id], onDelete: Cascade)
+  targetEntity    Entity   @relation("TargetRelations", fields: [targetEntityId], references: [id], onDelete: Cascade)
+}
+
+model EntitySource {
+  id          String   @id @default(uuid())
+  entityId    String
+  datasetId   String?
+  documentId  String?
+  aiJobId     String?
+  createdAt   DateTime @default(now())
+
+  entity      Entity    @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  dataset     Dataset?  @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+  document    Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  aiJob       AiJob?    @relation(fields: [aiJobId], references: [id], onDelete: SetNull)
+}

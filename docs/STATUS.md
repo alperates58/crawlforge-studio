@@ -3,18 +3,18 @@
 ## Current Phase
 
 ```txt
-PHASE-12-OCR-AND-IMAGE-EXTRACTION
+PHASE-13-KNOWLEDGE-GRAPH
 ```
 
 ## Current Version
 
 ```txt
-0.12.0
+0.13.0
 ```
 
 ## Project State
 
-Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots. Production hardening is complete (rate limits, retries, cleanup, metrics, health). Browser Recorder provides CDP Screencast-based remote browsing and click/type step recording inside the web UI. Stabilization for production deployment is completed. OCR Worker enables extracting text from image documents.
+Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker executes bot steps seamlessly. Runs UI enables manual invocation and displays run results and step logs. Scheduler worker enables timezone-aware cron-based automated execution of bots. Production hardening is complete (rate limits, retries, cleanup, metrics, health). Browser Recorder provides CDP Screencast-based remote browsing and click/type step recording inside the web UI. Stabilization for production deployment is completed. OCR Worker enables extracting text from image documents. Knowledge Graph enables unifying entities and tracking relations between AI extracted data.
 
 ## Completed
 
@@ -51,9 +51,9 @@ Worker engine is built. BullMQ and Redis handle job queuing. Playwright worker e
 - [x] Phase 08: Scheduler (Timezone-aware cron scheduling, standalone worker, UI management)
 - [x] Phase 09: Production Hardening (Rate limits, Retries, Concurrency, System Metrics, Cleanup Jobs)
 - [x] Phase 10: Browser Recorder (CDP Screencast, Interactive Visual Recording, Intelligent Selectors)
-
 - [x] Phase 11: Stabilization (Frontend API Base URL routing for production)
 - [x] Phase 12: OCR and Image Extraction (Tesseract.js worker, UI badges and retry mechanisms)
+- [x] Phase 13: Knowledge Graph (Entity/Relation mapping from AI extractions)
 
 ## In Progress
 

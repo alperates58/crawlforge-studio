@@ -16,6 +16,8 @@ import RunDetail from './pages/RunDetail';
 import Schedules from './pages/Schedules';
 import AiJobs from './pages/AiJobs';
 import AiJobDetail from './pages/AiJobDetail';
+import Entities from './pages/Entities';
+import EntityDetail from './pages/EntityDetail';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -46,6 +48,8 @@ function App() {
             <Route path="documents/:id" element={<DocumentDetail />} />
             <Route path="ai-jobs" element={<AiJobs />} />
             <Route path="ai-jobs/:id" element={<AiJobDetail />} />
+            <Route path="entities" element={<Entities />} />
+            <Route path="entities/:id" element={<EntityDetail />} />
             <Route path="settings" element={<Settings />} />
             <Route path="system-settings" element={<SystemSettings />} />
           </Route>

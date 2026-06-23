@@ -10,6 +10,7 @@ import { encrypt } from './utils/encryption';
 import { AiProviderService } from './services/AiProviderService';
 import cronParser from 'cron-parser';
 import rateLimit from 'express-rate-limit';
+import { KnowledgeGraphService } from './services/KnowledgeGraphService';
 
 dotenv.config();
 
@@ -932,6 +933,15 @@ app.post('/api/ai-jobs/:id/approve', authenticateToken, async (req, res) => {
       where: { id: job.extractionResult.id },
       data: { reviewStatus: 'approved' }
     });
+
+    if (job.extractionResult.jsonData) {
+      await KnowledgeGraphService.processGraphData(
+        job.id,
+        job.datasetId,
+        job.documentId,
+        job.extractionResult.jsonData
+      ).catch(e => console.error('KG Process error', e));
+    }
     
     res.json({ message: 'Approved' });
   } catch (error) {
@@ -1084,6 +1094,75 @@ async function autoSeed() {
     console.log('Seeded Cosmetic TDS Extractor Prompt Template');
   }
 }
+
+
+
+app.get('/api/entities', authenticateToken, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 50;
+    const skip = (page - 1) * pageSize;
+
+    const [total, entities] = await Promise.all([
+      prisma.entity.count(),
+      prisma.entity.findMany({
+        skip,
+        take: pageSize,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          _count: {
+            select: { sources: true, sourceRelations: true, targetRelations: true }
+          }
+        }
+      })
+    ]);
+
+    res.json({ data: entities, total, page, pageSize });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch entities' });
+  }
+});
+
+app.get('/api/entities/search', authenticateToken, async (req, res) => {
+  try {
+    const query = (req.query.q as string || '').trim();
+    if (!query) return res.json([]);
+
+    const entities = await prisma.entity.findMany({
+      where: {
+        entityName: { contains: query, mode: 'insensitive' }
+      },
+      take: 20
+    });
+    res.json(entities);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to search entities' });
+  }
+});
+
+app.get('/api/entities/:id', authenticateToken, async (req, res) => {
+  try {
+    const entity = await prisma.entity.findUnique({
+      where: { id: req.params.id },
+      include: {
+        sources: {
+          include: { dataset: true, document: true, aiJob: true }
+        },
+        sourceRelations: {
+          include: { targetEntity: true }
+        },
+        targetRelations: {
+          include: { sourceEntity: true }
+        }
+      }
+    });
+    
+    if (!entity) return res.status(404).json({ error: 'Not found' });
+    res.json(entity);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch entity details' });
+  }
+});
 
 autoSeed().then(() => {
   app.listen(port, () => {
