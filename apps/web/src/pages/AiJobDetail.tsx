@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, CheckCircle, XCircle } from 'lucide-react';
@@ -18,7 +19,7 @@ export default function AiJobDetail() {
   const loadJob = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3001/api/ai-jobs/${id}`, {
+      const res = await axios.get(`${API_BASE_URL}/ai-jobs/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setJob(res.data);
@@ -32,7 +33,7 @@ export default function AiJobDetail() {
   const handleRun = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3001/api/ai-jobs/${id}/run`, {}, {
+      await axios.post(`${API_BASE_URL}/ai-jobs/${id}/run`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Job queued for execution');
@@ -46,7 +47,7 @@ export default function AiJobDetail() {
     if (!window.confirm('Are you sure you want to approve this result?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3001/api/ai-jobs/${id}/approve`, {}, {
+      await axios.post(`${API_BASE_URL}/ai-jobs/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Result approved');
@@ -60,7 +61,7 @@ export default function AiJobDetail() {
     if (!window.confirm('Are you sure you want to reject this result?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3001/api/ai-jobs/${id}/reject`, {}, {
+      await axios.post(`${API_BASE_URL}/ai-jobs/${id}/reject`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Result rejected');

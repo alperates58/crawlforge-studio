@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { ArrowLeft, Download, FileText, Database } from 'lucide-react';
 import { DocumentType } from '../types/document';
@@ -16,7 +17,7 @@ export default function DocumentDetail() {
   const fetchDocument = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3001/api/documents/${id}`, {
+      const res = await axios.get(`${API_BASE_URL}/documents/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDocument(res.data);

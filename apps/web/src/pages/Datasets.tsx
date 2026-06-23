@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { Download, Eye, Search, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -27,7 +28,7 @@ export default function Datasets() {
       if (search) params.append('search', search);
       if (statusFilter) params.append('status', statusFilter);
       
-      const res = await axios.get(`http://localhost:3001/api/datasets?${params.toString()}`, {
+      const res = await axios.get(`${API_BASE_URL}/datasets?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDatasets(res.data.data);
@@ -56,7 +57,7 @@ export default function Datasets() {
       if (search) params.append('search', search);
       if (statusFilter) params.append('status', statusFilter);
       
-      const url = `http://localhost:3001/api/datasets/export/csv?${params.toString()}`;
+      const url = `${API_BASE_URL}/datasets/export/csv?${params.toString()}`;
       
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },

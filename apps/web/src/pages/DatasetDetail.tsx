@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { ArrowLeft, Check, X, Save, FileJson } from 'lucide-react';
 import { Dataset } from '../types/dataset';
@@ -17,7 +18,7 @@ export default function DatasetDetail() {
   const fetchDataset = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3001/api/datasets/${id}`, {
+      const res = await axios.get(`${API_BASE_URL}/datasets/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDataset(res.data);
@@ -42,7 +43,7 @@ export default function DatasetDetail() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3001/api/datasets/${id}/${status}`, {}, {
+      await axios.post(`${API_BASE_URL}/datasets/${id}/${status}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(`Dataset ${status}`);
@@ -63,7 +64,7 @@ export default function DatasetDetail() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:3001/api/datasets/${id}`, {
+      await axios.put(`${API_BASE_URL}/datasets/${id}`, {
         dataJson: rawJson
       }, {
         headers: { Authorization: `Bearer ${token}` }

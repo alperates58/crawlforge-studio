@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { Settings as SettingsIcon, Database, MessageSquare, Play, Key } from 'lucide-react';
 import { AiSettingType, ExtractionSchemaType, PromptTemplateType } from '../types/ai';
@@ -60,7 +61,7 @@ function AiSettingsTab() {
     const load = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:3001/api/settings/ai', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get(`${API_BASE_URL}/settings/ai`, { headers: { Authorization: `Bearer ${token}` } });
         if (res.data) {
           setSetting({
             ...res.data,
@@ -78,7 +79,7 @@ function AiSettingsTab() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3001/api/settings/ai', setting, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.post(`${API_BASE_URL}/settings/ai`, setting, { headers: { Authorization: `Bearer ${token}` } });
       setSetting({
         ...res.data,
         apiKey: '' // clear on save success
@@ -142,7 +143,7 @@ function SchemasTab() {
     const load = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:3001/api/extraction-schemas', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get(`${API_BASE_URL}/extraction-schemas`, { headers: { Authorization: `Bearer ${token}` } });
         setSchemas(res.data);
       } catch (e) {
         toast.error('Failed to load schemas');
@@ -182,7 +183,7 @@ function PromptsTab() {
     const load = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:3001/api/prompt-templates', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.get(`${API_BASE_URL}/prompt-templates`, { headers: { Authorization: `Bearer ${token}` } });
         setTemplates(res.data);
       } catch (e) {
         toast.error('Failed to load templates');
@@ -231,8 +232,8 @@ function PlaygroundTab() {
     const load = async () => {
       const token = localStorage.getItem('token');
       const [sRes, tRes] = await Promise.all([
-        axios.get('http://localhost:3001/api/extraction-schemas', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:3001/api/prompt-templates', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API_BASE_URL}/extraction-schemas`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_BASE_URL}/prompt-templates`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setSchemas(sRes.data);
       setTemplates(tRes.data);
@@ -251,7 +252,7 @@ function PlaygroundTab() {
       setLoading(true);
       setResult(null);
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3001/api/ai/playground', { text, schemaId, promptTemplateId: templateId }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.post(`${API_BASE_URL}/ai/playground`, { text, schemaId, promptTemplateId: templateId }, { headers: { Authorization: `Bearer ${token}` } });
       setResult(res.data);
     } catch (e: any) {
       toast.error('AI execution failed');

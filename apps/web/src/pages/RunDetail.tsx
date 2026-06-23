@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { ArrowLeft, CheckCircle2, XCircle, Clock, RefreshCw } from 'lucide-react';
 
 interface StepLog {
@@ -38,7 +39,7 @@ export default function RunDetail() {
   const fetchRun = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3001/api/runs/${id}`, {
+      const res = await axios.get(`${API_BASE_URL}/runs/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRun(res.data);

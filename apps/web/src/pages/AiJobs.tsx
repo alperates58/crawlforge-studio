@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
@@ -14,7 +15,7 @@ export default function AiJobs() {
   const loadJobs = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:3001/api/ai-jobs', {
+      const res = await axios.get(`${API_BASE_URL}/ai-jobs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setJobs(res.data);

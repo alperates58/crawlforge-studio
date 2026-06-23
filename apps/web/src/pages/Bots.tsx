@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { Plus } from 'lucide-react';
 
 interface Project {
@@ -32,8 +33,8 @@ export default function Bots() {
     try {
       const token = localStorage.getItem('token');
       const [botsRes, projectsRes] = await Promise.all([
-        axios.get('http://localhost:3001/api/bots', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:3001/api/projects', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API_BASE_URL}/bots`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_BASE_URL}/projects`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setBots(botsRes.data);
       setProjects(projectsRes.data);
@@ -51,7 +52,7 @@ export default function Bots() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3001/api/bots', {
+      const res = await axios.post(`${API_BASE_URL}/bots`, {
         name: newBotName,
         projectId: selectedProjectId,
         startUrl: newBotStartUrl,

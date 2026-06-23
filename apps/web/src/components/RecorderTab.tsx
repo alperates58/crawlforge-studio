@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL, WS_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { Play, Square, MousePointer2, Keyboard, Clock, RefreshCw, AlertCircle, Plus, Replace } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
     try {
       setStatus('starting');
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3001/api/recorder/sessions', 
+      const res = await axios.post(`${API_BASE_URL}/recorder/sessions`, 
         { botId, startUrl },
         { headers: { Authorization: `Bearer ${token}` }}
       );
@@ -44,7 +45,7 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
   };
 
   const connectWebSocket = (sessionId: string) => {
-    const ws = new WebSocket(`ws://localhost:3002?sessionId=${sessionId}`);
+    const ws = new WebSocket(`${WS_BASE_URL}?sessionId=${sessionId}`);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -88,7 +89,7 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
     if (!session) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:3001/api/recorder/sessions/${session.id}/stop`, {}, {
+      await axios.post(`${API_BASE_URL}/recorder/sessions/${session.id}/stop`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (wsRef.current) {

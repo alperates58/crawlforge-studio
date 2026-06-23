@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { RefreshCw, Play, CheckCircle2, XCircle, Clock } from 'lucide-react';
 
 interface Run {
@@ -24,7 +25,7 @@ export default function Runs() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:3001/api/runs', {
+      const res = await axios.get(`${API_BASE_URL}/runs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRuns(res.data);

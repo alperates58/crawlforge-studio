@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { Search, Filter, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DocumentType } from '../types/document';
@@ -28,7 +29,7 @@ export default function Documents() {
       if (search) params.append('search', search);
       if (mimeTypeFilter) params.append('mimeType', mimeTypeFilter);
 
-      const res = await axios.get(`http://localhost:3001/api/documents?${params.toString()}`, {
+      const res = await axios.get(`${API_BASE_URL}/documents?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

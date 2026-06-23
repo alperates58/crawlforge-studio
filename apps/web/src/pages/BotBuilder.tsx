@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { BotStep, StepType } from '../types/bot';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, Play } from 'lucide-react';
@@ -26,13 +27,13 @@ export default function BotBuilder() {
   const fetchBot = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:3001/api/bots/${id}`, {
+      const response = await axios.get(`${API_BASE_URL}/bots/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setBot(response.data);
       
       try {
-        const scheduleResponse = await axios.get(`http://localhost:3001/api/bots/${id}/schedule`, {
+        const scheduleResponse = await axios.get(`${API_BASE_URL}/bots/${id}/schedule`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (scheduleResponse.data) {
@@ -76,7 +77,7 @@ export default function BotBuilder() {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:3001/api/bots/${id}`, {
+      await axios.put(`${API_BASE_URL}/bots/${id}`, {
         ...bot,
         stepsJson: JSON.stringify(steps)
       }, {
@@ -84,7 +85,7 @@ export default function BotBuilder() {
       });
 
       if (schedule) {
-        await axios.put(`http://localhost:3001/api/bots/${id}/schedule`, schedule, {
+        await axios.put(`${API_BASE_URL}/bots/${id}/schedule`, schedule, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -101,7 +102,7 @@ export default function BotBuilder() {
   const handleRun = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`http://localhost:3001/api/bots/${id}/run`, {}, {
+      const response = await axios.post(`${API_BASE_URL}/bots/${id}/run`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Bot run queued successfully');

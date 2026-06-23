@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { Plus } from 'lucide-react';
 
 interface Project {
@@ -25,12 +26,12 @@ export default function Projects() {
     try {
       const token = localStorage.getItem('token');
       if (editingProjectId) {
-        await axios.put(`http://localhost:3001/api/projects/${editingProjectId}`, 
+        await axios.put(`${API_BASE_URL}/projects/${editingProjectId}`, 
           { name: newProjectName, description: newProjectDesc },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        await axios.post('http://localhost:3001/api/projects', 
+        await axios.post(`${API_BASE_URL}/projects`, 
           { name: newProjectName, description: newProjectDesc },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -48,7 +49,7 @@ export default function Projects() {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:3001/api/projects', {
+      const res = await axios.get(`${API_BASE_URL}/projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProjects(res.data);
@@ -114,7 +115,7 @@ export default function Projects() {
                       if(window.confirm('Are you sure you want to delete this project?')) {
                         try {
                           const token = localStorage.getItem('token');
-                          await axios.delete(`http://localhost:3001/api/projects/${project.id}`, {
+                          await axios.delete(`${API_BASE_URL}/projects/${project.id}`, {
                             headers: { Authorization: `Bearer ${token}` }
                           });
                           fetchProjects();

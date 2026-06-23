@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
 import { ShieldCheck, HardDrive, Database, Layers, FileText, Bot, BrainCircuit } from 'lucide-react';
 
@@ -11,7 +12,7 @@ export default function SystemSettings() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3001/api/system/stats', {
+        const response = await axios.get(`${API_BASE_URL}/system/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(response.data);
