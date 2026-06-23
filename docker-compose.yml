@@ -48,6 +48,7 @@ services:
       - 'traefik.http.routers.crawlforge-api.tls=true'
       - 'traefik.http.routers.crawlforge-api.tls.certresolver=letsencrypt'
       - 'traefik.http.services.crawlforge-api.loadbalancer.server.port=3001'
+      - 'traefik.docker.network=coolify'
 
   worker:
     build:
