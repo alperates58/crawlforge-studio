@@ -36,8 +36,18 @@ services:
       - app_storage:/app/storage
     networks:
       - crawlforge_net
-    ports:
-      - "3001:3001"
+    expose:
+      - '3001'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.crawlforge-api.entrypoints=https'
+      - 'traefik.http.routers.crawlforge-api.rule=Host(`databot.alperates.com.tr`) && PathPrefix(`/api`)'
+      - 'traefik.http.routers.crawlforge-api.priority=100'
+      - 'traefik.http.routers.crawlforge-api.middlewares=crowdsec@file'
+      - 'traefik.http.routers.crawlforge-api.service=crawlforge-api'
+      - 'traefik.http.routers.crawlforge-api.tls=true'
+      - 'traefik.http.routers.crawlforge-api.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.crawlforge-api.loadbalancer.server.port=3001'
 
   worker:
     build:
@@ -101,6 +111,24 @@ services:
       - crawlforge_net
     ports:
       - "3002:3002"
+
+  ocr-worker:
+    build:
+      context: .
+      dockerfile: apps/ocr-worker/Dockerfile
+    container_name: crawlforge-ocr-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - api
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - crawlforge_net
+
 
   web:
     build:
