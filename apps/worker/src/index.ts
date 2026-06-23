@@ -30,11 +30,12 @@ async function processJob(job: Job) {
   }
 
   // Update status to running
+  const startTime = new Date();
   await prisma.botRun.update({
     where: { id: runId },
     data: { 
       status: 'running',
-      startedAt: new Date()
+      startedAt: startTime
     }
   });
 
@@ -47,7 +48,7 @@ async function processJob(job: Job) {
       data: {
         status: 'succeeded',
         finishedAt: new Date(),
-        durationMs: new Date().getTime() - botRun.startedAt!.getTime(),
+        durationMs: new Date().getTime() - startTime.getTime(),
         pagesVisited: result.pagesVisited,
         recordsExtracted: result.recordsExtracted,
       }
@@ -63,7 +64,7 @@ async function processJob(job: Job) {
       data: {
         status: 'failed',
         finishedAt: new Date(),
-        durationMs: botRun.startedAt ? new Date().getTime() - botRun.startedAt.getTime() : null,
+        durationMs: new Date().getTime() - startTime.getTime(),
         errorMessage: error.message || 'Unknown error occurred',
       }
     });

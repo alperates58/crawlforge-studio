@@ -16,7 +16,8 @@ import { loopLinksHandler } from './handlers/loopLinks';
 
 export async function runBot(botRun: any, prisma: PrismaClient) {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const browserContext = await browser.newContext();
+  const page = await browserContext.newPage();
   
   const context: ExecutionContext = {
     page,

@@ -21,6 +21,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/tsconfig.base.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/database ./packages/database
 COPY --from=builder /app/apps/api ./apps/api

@@ -146,6 +146,19 @@ app.put('/api/projects/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.project.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete project' });
+  }
+});
+
 app.get('/api/bots', authenticateToken, async (req, res) => {
   try {
     const bots = await prisma.bot.findMany({
@@ -258,8 +271,8 @@ app.put('/api/bots/:id/schedule', authenticateToken, async (req, res) => {
     });
 
     res.json(schedule);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update schedule' });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to update schedule', details: error.message });
   }
 });
 
@@ -847,10 +860,10 @@ app.post('/api/ai-jobs', authenticateToken, async (req, res) => {
 
     const job = await prisma.aiJob.create({
       data: {
-        documentId,
-        datasetId,
-        schemaId,
-        promptTemplateId,
+        documentId: documentId || null,
+        datasetId: datasetId || null,
+        schemaId: schemaId || null,
+        promptTemplateId: promptTemplateId || null,
         providerName: setting.providerName,
         model: setting.model,
         status: 'pending'

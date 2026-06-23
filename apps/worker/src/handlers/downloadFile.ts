@@ -15,7 +15,9 @@ export const downloadFileHandler: StepHandler = async (step, context) => {
     // Wait for the download event and click simultaneously
     const [download] = await Promise.all([
       context.page.waitForEvent('download', { timeout: timeoutMs }),
-      context.page.click(selector)
+      selector ? context.page.click(selector) : context.page.goto(step.url || context.currentUrl).catch(e => {
+        if (!e.message.includes('Download is starting')) throw e;
+      })
     ]);
 
     const originalFilename = download.suggestedFilename();
