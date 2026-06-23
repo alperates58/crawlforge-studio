@@ -112,24 +112,6 @@ services:
     ports:
       - "3002:3002"
 
-  ocr-worker:
-    build:
-      context: .
-      dockerfile: apps/ocr-worker/Dockerfile
-    container_name: crawlforge-ocr-worker
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-      - api
-    volumes:
-      - app_storage:/app/storage
-    networks:
-      - crawlforge_net
-
-
   web:
     build:
       context: .
