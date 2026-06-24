@@ -41,7 +41,7 @@ services:
       - sh
       - -lc
       - |
-        until node -e "const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); const timer = setTimeout(() => process.exit(1), 2000); prisma.$connect().then(() => prisma.$disconnect()).then(() => { clearTimeout(timer); process.exit(0); }).catch(() => process.exit(1));"; do
+        until node -e "const net=require('net'); const s=net.connect(5432,'postgres'); s.on('connect',()=>process.exit(0)); s.on('error',()=>process.exit(1)); setTimeout(()=>process.exit(1),1000)"; do
           echo "waiting for postgres..."
           sleep 2
         done
