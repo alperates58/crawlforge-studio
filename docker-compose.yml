@@ -18,11 +18,14 @@ services:
   redis:
     image: redis:7-alpine
     container_name: crawlforge-redis
+    hostname: crawlforge-redis-cache
     restart: unless-stopped
     volumes:
       - redis_data:/data
     networks:
-      - crawlforge_net
+      crawlforge_net:
+        aliases:
+          - crawlforge-redis-cache
 
   api:
     build:
