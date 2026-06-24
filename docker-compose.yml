@@ -41,13 +41,14 @@ services:
       - sh
       - -lc
       - |
+        set -e
         until node -e "const net=require('net'); const s=net.connect(5432,'postgres'); s.on('connect',()=>process.exit(0)); s.on('error',()=>process.exit(1)); setTimeout(()=>process.exit(1),1000)"; do
           echo "waiting for postgres..."
           sleep 2
         done
         npm run db:push --workspace=@crawlforge/database
         npm run seed:prod --workspace=@crawlforge/api
-        npm run start --workspace=@crawlforge/api
+        exec npm run start --workspace=@crawlforge/api
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.crawlforge-api.entrypoints=https'
