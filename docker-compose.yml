@@ -112,8 +112,8 @@ services:
     networks:
       - crawlforge_net
       - coolify
-    ports:
-      - "3002:3002"
+    expose:
+      - '3002'
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.crawlforge-recorder.entrypoints=https'
@@ -157,8 +157,8 @@ services:
       - api
     networks:
       - crawlforge_net
-    ports:
-      - "3005:3000"
+    expose:
+      - '3000'
 
 volumes:
   postgres_data:
