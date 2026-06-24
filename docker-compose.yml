@@ -37,6 +37,17 @@ services:
       - coolify
     expose:
       - '3001'
+    command:
+      - sh
+      - -lc
+      - |
+        until node -e "const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); const timer = setTimeout(() => process.exit(1), 2000); prisma.$connect().then(() => prisma.$disconnect()).then(() => { clearTimeout(timer); process.exit(0); }).catch(() => process.exit(1));"; do
+          echo "waiting for postgres..."
+          sleep 2
+        done
+        npm run db:push --workspace=@crawlforge/database
+        npm run seed:prod --workspace=@crawlforge/api
+        npm run start --workspace=@crawlforge/api
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.crawlforge-api.entrypoints=https'
