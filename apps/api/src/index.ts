@@ -15,6 +15,8 @@ import { KnowledgeGraphService } from './services/KnowledgeGraphService';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1);
+
 const port = process.env.PORT || 3001;
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';

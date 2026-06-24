@@ -36,6 +36,7 @@ services:
       - app_storage:/app/storage
     networks:
       - crawlforge_net
+      - coolify
     expose:
       - '3001'
     labels:
@@ -110,6 +111,7 @@ services:
       - api
     networks:
       - crawlforge_net
+      - coolify
     ports:
       - "3002:3002"
     labels:
@@ -166,3 +168,5 @@ volumes:
 networks:
   crawlforge_net:
     driver: bridge
+  coolify:
+    external: true
