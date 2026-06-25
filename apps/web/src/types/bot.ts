@@ -53,6 +53,7 @@ export interface ExtractTextStep extends BaseStep {
   field_name: string;
   selector: string;
   required?: boolean;
+  extract_all?: boolean;
 }
 
 export interface ExtractLinksStep extends BaseStep {
@@ -68,6 +69,7 @@ export interface ExtractAttributeStep extends BaseStep {
   selector: string;
   attribute: string;
   required?: boolean;
+  extract_all?: boolean;
 }
 
 export interface ExtractListField {

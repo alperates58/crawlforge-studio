@@ -167,16 +167,28 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
             </div>
             
             {step.type === 'EXTRACT_TEXT' && (
-              <div className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  id="required"
-                  checked={step.required || false}
-                  onChange={(e) => handleChange('required', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="required" className="text-sm text-gray-700">Make this field required</label>
-              </div>
+              <>
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="extract_all"
+                    checked={(step as any).extract_all ?? true}
+                    onChange={(e) => handleChange('extract_all', e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="extract_all" className="text-sm text-gray-700 font-medium">Extract all matching elements (list mode)</label>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="required"
+                    checked={step.required || false}
+                    onChange={(e) => handleChange('required', e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="required" className="text-sm text-gray-700">Make this field required</label>
+                </div>
+              </>
             )}
             
             {step.type === 'EXTRACT_LINKS' && (
@@ -229,6 +241,16 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
                 className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.attribute ? 'border-red-300' : 'border-gray-300'}`}
               />
               {!step.attribute && <p className="text-red-500 text-xs mt-1">Attribute name is required</p>}
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="extract_all"
+                checked={(step as any).extract_all ?? true}
+                onChange={(e) => handleChange('extract_all', e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="extract_all" className="text-sm text-gray-700 font-medium">Extract all matching elements (list mode)</label>
             </div>
             <div className="flex items-center gap-2 mt-2">
               <input

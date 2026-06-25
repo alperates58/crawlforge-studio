@@ -9,6 +9,34 @@ import StepList from '../components/BotBuilder/StepList';
 import StepEditor from '../components/BotBuilder/StepEditor';
 import RecorderTab from '../components/RecorderTab';
 
+const normalizeRecordedSteps = (recordedSteps: any[]): BotStep[] => {
+  return recordedSteps.map(step => {
+    const { parameters, ...rest } = step;
+    const normalized: any = { ...rest, ...parameters };
+    
+    if (normalized.durationMs !== undefined) {
+      normalized.duration_ms = normalized.durationMs;
+      delete normalized.durationMs;
+    }
+    if (normalized.text !== undefined && step.type === 'TYPE') {
+      normalized.value = normalized.text;
+      delete normalized.text;
+    }
+    
+    if (step.type === 'EXTRACT_TEXT' || step.type === 'EXTRACT_ATTRIBUTE' || step.type === 'EXTRACT_LINKS') {
+      if (normalized.extract_all === undefined) {
+        normalized.extract_all = true;
+      }
+    }
+    
+    if (!normalized.id) {
+      normalized.id = crypto.randomUUID();
+    }
+    
+    return normalized as BotStep;
+  });
+};
+
 export default function BotBuilder() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -59,7 +87,7 @@ export default function BotBuilder() {
             id: s.id || crypto.randomUUID()
           }));
           
-          setSteps(stepsWithIds);
+          setSteps(normalizeRecordedSteps(stepsWithIds));
         } catch (e) {
           console.error('Failed to parse steps JSON', e);
           setSteps([]);
@@ -274,12 +302,14 @@ export default function BotBuilder() {
             <RecorderTab 
               botId={id as string} 
               onAppendSteps={(recordedSteps) => {
-                setSteps([...steps, ...recordedSteps]);
+                const normalized = normalizeRecordedSteps(recordedSteps);
+                setSteps([...steps, ...normalized]);
                 toast.success('Steps appended successfully');
                 setActiveTab('builder');
               }}
               onReplaceSteps={(recordedSteps) => {
-                setSteps(recordedSteps);
+                const normalized = normalizeRecordedSteps(recordedSteps);
+                setSteps(normalized);
                 toast.success('Steps replaced successfully');
                 setActiveTab('builder');
               }}
