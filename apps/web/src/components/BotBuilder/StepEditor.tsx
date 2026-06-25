@@ -1,4 +1,4 @@
-import { BotStep } from '../../types/bot';
+import { BotStep, ExtractListStep } from '../../types/bot';
 
 interface StepEditorProps {
   step: BotStep;
@@ -244,25 +244,26 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
         );
 
       case 'EXTRACT_LIST':
+        const listStep = step as ExtractListStep;
         return (
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Row/Container CSS Selector</label>
               <input
                 type="text"
-                value={step.item_selector || ''}
+                value={listStep.item_selector || ''}
                 onChange={(e) => handleChange('item_selector', e.target.value)}
                 placeholder="e.g. .product-card, .e-loop-item"
-                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.item_selector ? 'border-red-300' : 'border-gray-300'}`}
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!listStep.item_selector ? 'border-red-300' : 'border-gray-300'}`}
               />
-              {!step.item_selector && <p className="text-red-500 text-xs mt-1">Item container selector is required</p>}
+              {!listStep.item_selector && <p className="text-red-500 text-xs mt-1">Item container selector is required</p>}
             </div>
             
             <div className="flex items-center gap-2 mt-2">
               <input
                 type="checkbox"
                 id="save_records"
-                checked={step.save_records || false}
+                checked={listStep.save_records || false}
                 onChange={(e) => {
                   handleChange('save_records', e.target.checked);
                   if (e.target.checked) handleChange('field_name', undefined);
@@ -272,12 +273,12 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
               <label htmlFor="save_records" className="text-sm text-gray-700 font-medium">Save directly to Dataset records (creates separate entries for each item)</label>
             </div>
 
-            {!step.save_records && (
+            {!listStep.save_records && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Output Field Name (JSON key for list array)</label>
                 <input
                   type="text"
-                  value={step.field_name || ''}
+                  value={listStep.field_name || ''}
                   onChange={(e) => handleChange('field_name', e.target.value)}
                   placeholder="e.g. products"
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -289,7 +290,7 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Limit Items (Optional)</label>
               <input
                 type="number"
-                value={step.limit || ''}
+                value={listStep.limit || ''}
                 onChange={(e) => handleChange('limit', parseInt(e.target.value) || undefined)}
                 placeholder="e.g. 50"
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -300,16 +301,16 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
               <h3 className="text-sm font-semibold text-gray-800 mb-2">Fields to Extract (relative to container)</h3>
               
               <div className="space-y-3">
-                {(step.fields || []).map((f: any, idx: number) => (
+                {(listStep.fields || []).map((f: any, idx: number) => (
                   <div key={idx} className="flex gap-2 items-start border p-3 rounded-lg bg-gray-50 relative">
                     <div className="flex-1 grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Field Name</label>
                         <input
                           type="text"
-                          value={f.field_name}
+                          value={f.field_name || ''}
                           onChange={(e) => {
-                            const newFields = [...step.fields];
+                            const newFields = [...(listStep.fields || [])];
                             newFields[idx].field_name = e.target.value;
                             handleChange('fields', newFields);
                           }}
@@ -321,9 +322,9 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
                         <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Relative CSS Selector</label>
                         <input
                           type="text"
-                          value={f.selector}
+                          value={f.selector || ''}
                           onChange={(e) => {
-                            const newFields = [...step.fields];
+                            const newFields = [...(listStep.fields || [])];
                             newFields[idx].selector = e.target.value;
                             handleChange('fields', newFields);
                           }}
@@ -334,9 +335,9 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
                       <div>
                         <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Extract Type</label>
                         <select
-                          value={f.type}
+                          value={f.type || 'text'}
                           onChange={(e) => {
-                            const newFields = [...step.fields];
+                            const newFields = [...(listStep.fields || [])];
                             newFields[idx].type = e.target.value;
                             if (e.target.value === 'attribute' && !newFields[idx].attribute) {
                               newFields[idx].attribute = 'src';
@@ -354,9 +355,9 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
                           <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Attribute</label>
                           <input
                             type="text"
-                            value={f.attribute}
+                            value={f.attribute || ''}
                             onChange={(e) => {
-                              const newFieldsCopy = [...step.fields];
+                              const newFieldsCopy = [...(listStep.fields || [])];
                               newFieldsCopy[idx].attribute = e.target.value;
                               handleChange('fields', newFieldsCopy);
                             }}
@@ -369,7 +370,7 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
                     <button
                       type="button"
                       onClick={() => {
-                        const newFields = (step.fields || []).filter((_: any, i: number) => i !== idx);
+                        const newFields = (listStep.fields || []).filter((_: any, i: number) => i !== idx);
                         handleChange('fields', newFields);
                       }}
                       className="p-2 hover:bg-gray-200 rounded text-red-500 self-center"
@@ -383,7 +384,7 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
               <button
                 type="button"
                 onClick={() => {
-                  const newFields = [...(step.fields || []), { field_name: '', selector: '', type: 'text' }];
+                  const newFields = [...(listStep.fields || []), { field_name: '', selector: '', type: 'text' }];
                   handleChange('fields', newFields);
                 }}
                 className="mt-3 text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-100 font-medium"

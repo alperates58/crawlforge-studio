@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL, WS_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
-import { Play, Square, MousePointer2, Keyboard, Clock, RefreshCw, AlertCircle, Plus, Replace, Monitor, FileText, Image, Link } from 'lucide-react';
+import { Play, Square, MousePointer2, Keyboard, Clock, RefreshCw, AlertCircle, Plus, Replace, Monitor, FileText, Image as ImageIcon, Link } from 'lucide-react';
 
 interface RecorderTabProps {
   botId: string;
@@ -268,7 +268,7 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
                     {step.type === 'TYPE' && <Keyboard className="w-3 h-3 mr-1" />}
                     {step.type === 'OPEN_URL' && <RefreshCw className="w-3 h-3 mr-1" />}
                     {step.type === 'EXTRACT_TEXT' && <FileText className="w-3 h-3 mr-1" />}
-                    {step.type === 'EXTRACT_ATTRIBUTE' && <Image className="w-3 h-3 mr-1" />}
+                    {step.type === 'EXTRACT_ATTRIBUTE' && <ImageIcon className="w-3 h-3 mr-1" />}
                     {step.type}
                   </span>
                   {step.weakSelector && (
