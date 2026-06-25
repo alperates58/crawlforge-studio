@@ -338,7 +338,7 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
                           value={f.type || 'text'}
                           onChange={(e) => {
                             const newFields = [...(listStep.fields || [])];
-                            newFields[idx].type = e.target.value;
+                            newFields[idx].type = e.target.value as 'text' | 'attribute';
                             if (e.target.value === 'attribute' && !newFields[idx].attribute) {
                               newFields[idx].attribute = 'src';
                             }

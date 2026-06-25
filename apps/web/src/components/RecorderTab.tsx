@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL, WS_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
-import { Play, Square, MousePointer2, Keyboard, Clock, RefreshCw, AlertCircle, Plus, Replace, Monitor, FileText, Image as ImageIcon, Link } from 'lucide-react';
+import { Play, Square, MousePointer2, Keyboard, Clock, RefreshCw, AlertCircle, Plus, Replace, Monitor, FileText, Image as ImageIcon } from 'lucide-react';
 
 interface RecorderTabProps {
   botId: string;
