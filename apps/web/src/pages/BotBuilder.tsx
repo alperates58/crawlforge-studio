@@ -124,6 +124,8 @@ export default function BotBuilder() {
     if (type === 'SCROLL') newStep.direction = 'down';
     if (type === 'EXTRACT_TEXT') newStep.field_name = '';
     if (type === 'EXTRACT_LINKS') { newStep.field_name = ''; newStep.selector = ''; }
+    if (type === 'EXTRACT_ATTRIBUTE') { newStep.field_name = ''; newStep.selector = ''; newStep.attribute = 'src'; newStep.required = false; }
+    if (type === 'EXTRACT_LIST') { newStep.item_selector = ''; newStep.save_records = true; newStep.fields = []; }
     if (type === 'SAVE_RECORD') newStep.dataset_id = '';
     if (type === 'DOWNLOAD_FILE') { newStep.selector = ''; newStep.field_name = ''; newStep.allowed_extensions = 'pdf,docx,xlsx,png,jpg'; }
     if (type === 'LOOP_LINKS') { newStep.source_field = ''; newStep.max_items = 50; newStep.steps = []; }

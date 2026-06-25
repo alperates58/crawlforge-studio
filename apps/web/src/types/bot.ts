@@ -6,6 +6,8 @@ export type StepType =
   | 'SCROLL'
   | 'EXTRACT_TEXT'
   | 'EXTRACT_LINKS'
+  | 'EXTRACT_ATTRIBUTE'
+  | 'EXTRACT_LIST'
   | 'SAVE_RECORD'
   | 'DOWNLOAD_FILE'
   | 'LOOP_LINKS'
@@ -60,6 +62,30 @@ export interface ExtractLinksStep extends BaseStep {
   limit?: number;
 }
 
+export interface ExtractAttributeStep extends BaseStep {
+  type: 'EXTRACT_ATTRIBUTE';
+  field_name: string;
+  selector: string;
+  attribute: string;
+  required?: boolean;
+}
+
+export interface ExtractListField {
+  field_name: string;
+  selector: string;
+  type: 'text' | 'attribute';
+  attribute?: string;
+}
+
+export interface ExtractListStep extends BaseStep {
+  type: 'EXTRACT_LIST';
+  field_name?: string;
+  item_selector: string;
+  fields: ExtractListField[];
+  save_records: boolean;
+  limit?: number;
+}
+
 export interface SaveRecordStep extends BaseStep {
   type: 'SAVE_RECORD';
   status?: string; // Optional status marker
@@ -102,6 +128,8 @@ export type BotStep =
   | ScrollStep
   | ExtractTextStep
   | ExtractLinksStep
+  | ExtractAttributeStep
+  | ExtractListStep
   | SaveRecordStep
   | DownloadFileStep
   | LoopLinksStep

@@ -194,6 +194,206 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
           </div>
         );
 
+      case 'EXTRACT_ATTRIBUTE':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Field Name (JSON key)</label>
+              <input
+                type="text"
+                value={step.field_name || ''}
+                onChange={(e) => handleChange('field_name', e.target.value)}
+                placeholder="e.g. productImage"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.field_name ? 'border-red-300' : 'border-gray-300'}`}
+              />
+              {!step.field_name && <p className="text-red-500 text-xs mt-1">Field name is required</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CSS Selector</label>
+              <input
+                type="text"
+                value={step.selector || ''}
+                onChange={(e) => handleChange('selector', e.target.value)}
+                placeholder=".product-image img"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.selector ? 'border-red-300' : 'border-gray-300'}`}
+              />
+              {!step.selector && <p className="text-red-500 text-xs mt-1">Selector is required</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Attribute Name</label>
+              <input
+                type="text"
+                value={step.attribute || ''}
+                onChange={(e) => handleChange('attribute', e.target.value)}
+                placeholder="src, href, title, etc. (default: src)"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.attribute ? 'border-red-300' : 'border-gray-300'}`}
+              />
+              {!step.attribute && <p className="text-red-500 text-xs mt-1">Attribute name is required</p>}
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="required"
+                checked={step.required || false}
+                onChange={(e) => handleChange('required', e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="required" className="text-sm text-gray-700">Make this field required</label>
+            </div>
+          </div>
+        );
+
+      case 'EXTRACT_LIST':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Row/Container CSS Selector</label>
+              <input
+                type="text"
+                value={step.item_selector || ''}
+                onChange={(e) => handleChange('item_selector', e.target.value)}
+                placeholder="e.g. .product-card, .e-loop-item"
+                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!step.item_selector ? 'border-red-300' : 'border-gray-300'}`}
+              />
+              {!step.item_selector && <p className="text-red-500 text-xs mt-1">Item container selector is required</p>}
+            </div>
+            
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="save_records"
+                checked={step.save_records || false}
+                onChange={(e) => {
+                  handleChange('save_records', e.target.checked);
+                  if (e.target.checked) handleChange('field_name', undefined);
+                }}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="save_records" className="text-sm text-gray-700 font-medium">Save directly to Dataset records (creates separate entries for each item)</label>
+            </div>
+
+            {!step.save_records && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Output Field Name (JSON key for list array)</label>
+                <input
+                  type="text"
+                  value={step.field_name || ''}
+                  onChange={(e) => handleChange('field_name', e.target.value)}
+                  placeholder="e.g. products"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Limit Items (Optional)</label>
+              <input
+                type="number"
+                value={step.limit || ''}
+                onChange={(e) => handleChange('limit', parseInt(e.target.value) || undefined)}
+                placeholder="e.g. 50"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">Fields to Extract (relative to container)</h3>
+              
+              <div className="space-y-3">
+                {(step.fields || []).map((f: any, idx: number) => (
+                  <div key={idx} className="flex gap-2 items-start border p-3 rounded-lg bg-gray-50 relative">
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Field Name</label>
+                        <input
+                          type="text"
+                          value={f.field_name}
+                          onChange={(e) => {
+                            const newFields = [...step.fields];
+                            newFields[idx].field_name = e.target.value;
+                            handleChange('fields', newFields);
+                          }}
+                          placeholder="title"
+                          className="w-full p-1.5 border rounded text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Relative CSS Selector</label>
+                        <input
+                          type="text"
+                          value={f.selector}
+                          onChange={(e) => {
+                            const newFields = [...step.fields];
+                            newFields[idx].selector = e.target.value;
+                            handleChange('fields', newFields);
+                          }}
+                          placeholder="h2"
+                          className="w-full p-1.5 border rounded text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Extract Type</label>
+                        <select
+                          value={f.type}
+                          onChange={(e) => {
+                            const newFields = [...step.fields];
+                            newFields[idx].type = e.target.value;
+                            if (e.target.value === 'attribute' && !newFields[idx].attribute) {
+                              newFields[idx].attribute = 'src';
+                            }
+                            handleChange('fields', newFields);
+                          }}
+                          className="w-full p-1.5 border rounded text-xs bg-white"
+                        >
+                          <option value="text">Text Content</option>
+                          <option value="attribute">Attribute</option>
+                        </select>
+                      </div>
+                      {f.type === 'attribute' && (
+                        <div>
+                          <label className="text-[10px] uppercase font-bold text-gray-500 block mb-0.5">Attribute</label>
+                          <input
+                            type="text"
+                            value={f.attribute}
+                            onChange={(e) => {
+                              const newFieldsCopy = [...step.fields];
+                              newFieldsCopy[idx].attribute = e.target.value;
+                              handleChange('fields', newFieldsCopy);
+                            }}
+                            placeholder="src"
+                            className="w-full p-1.5 border rounded text-xs"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newFields = (step.fields || []).filter((_: any, i: number) => i !== idx);
+                        handleChange('fields', newFields);
+                      }}
+                      className="p-2 hover:bg-gray-200 rounded text-red-500 self-center"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const newFields = [...(step.fields || []), { field_name: '', selector: '', type: 'text' }];
+                  handleChange('fields', newFields);
+                }}
+                className="mt-3 text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-100 font-medium"
+              >
+                + Add relative field
+              </button>
+            </div>
+          </div>
+        );
+
       case 'SAVE_RECORD':
         return (
           <div className="space-y-4">

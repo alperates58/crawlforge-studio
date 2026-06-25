@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL, WS_BASE_URL } from '../lib/api';
 import { toast } from 'sonner';
-import { Play, Square, MousePointer2, Keyboard, Clock, RefreshCw, AlertCircle, Plus, Replace } from 'lucide-react';
+import { Play, Square, MousePointer2, Keyboard, Clock, RefreshCw, AlertCircle, Plus, Replace, Monitor, FileText, Image, Link } from 'lucide-react';
 
 interface RecorderTabProps {
   botId: string;
@@ -17,6 +17,7 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
   const [recordedSteps, setRecordedSteps] = useState<any[]>([]);
   const [typeText, setTypeText] = useState('');
   const [waitMs, setWaitMs] = useState(1000);
+  const [recordMode, setRecordMode] = useState<'interact' | 'extract_text' | 'extract_attribute'>('interact');
   
   const wsRef = useRef<WebSocket | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -114,7 +115,11 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
 
-    wsRef.current.send(JSON.stringify({ action: 'click', x, y }));
+    let action = 'click';
+    if (recordMode === 'extract_text') action = 'extract_text';
+    if (recordMode === 'extract_attribute') action = 'extract_attribute';
+
+    wsRef.current.send(JSON.stringify({ action, x, y }));
   };
 
   const handleCanvasWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -181,6 +186,40 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
 
       {/* Sidebar Tools & Steps */}
       <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+        {/* Recording Mode Selector */}
+        <div className="p-4 border-b border-gray-200 bg-blue-50">
+          <h3 className="font-semibold text-xs uppercase tracking-wider text-blue-900 mb-2">Recording Mode</h3>
+          <div className="grid grid-cols-3 gap-1 bg-blue-100 p-1 rounded-lg">
+            <button
+              onClick={() => setRecordMode('interact')}
+              className={`py-1.5 text-xs font-semibold rounded transition-colors ${
+                recordMode === 'interact' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-600 hover:text-blue-900'
+              }`}
+              title="Record normal clicks and keyboard interactions"
+            >
+              Interact
+            </button>
+            <button
+              onClick={() => setRecordMode('extract_text')}
+              className={`py-1.5 text-xs font-semibold rounded transition-colors ${
+                recordMode === 'extract_text' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-600 hover:text-blue-900'
+              }`}
+              title="Click on elements to extract their text content"
+            >
+              Get Text
+            </button>
+            <button
+              onClick={() => setRecordMode('extract_attribute')}
+              className={`py-1.5 text-xs font-semibold rounded transition-colors ${
+                recordMode === 'extract_attribute' ? 'bg-white text-blue-700 shadow-sm' : 'text-blue-600 hover:text-blue-900'
+              }`}
+              title="Click on images/links to extract their links/source URLs"
+            >
+              Get Link
+            </button>
+          </div>
+        </div>
+
         <div className="p-4 border-b border-gray-200 bg-gray-50">
           <h3 className="font-semibold text-sm mb-4">Manual Actions</h3>
           
@@ -228,6 +267,8 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
                     {step.type === 'CLICK' && <MousePointer2 className="w-3 h-3 mr-1" />}
                     {step.type === 'TYPE' && <Keyboard className="w-3 h-3 mr-1" />}
                     {step.type === 'OPEN_URL' && <RefreshCw className="w-3 h-3 mr-1" />}
+                    {step.type === 'EXTRACT_TEXT' && <FileText className="w-3 h-3 mr-1" />}
+                    {step.type === 'EXTRACT_ATTRIBUTE' && <Image className="w-3 h-3 mr-1" />}
                     {step.type}
                   </span>
                   {step.weakSelector && (
@@ -237,6 +278,8 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
                   )}
                 </div>
                 {step.parameters?.selector && <div className="truncate text-gray-500 font-mono" title={step.parameters.selector}>{step.parameters.selector}</div>}
+                {step.parameters?.field_name && <div className="text-blue-600 font-semibold mt-0.5">Field: {step.parameters.field_name}</div>}
+                {step.parameters?.attribute && <div className="text-gray-600">Attribute: {step.parameters.attribute}</div>}
                 {step.parameters?.text && <div className="truncate text-blue-600">"{step.parameters.text}"</div>}
                 {step.parameters?.url && <div className="truncate text-blue-600">{step.parameters.url}</div>}
                 {step.parameters?.durationMs && <div className="text-orange-600">{step.parameters.durationMs}ms</div>}
@@ -263,16 +306,5 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
         </div>
       </div>
     </div>
-  );
-}
-
-// Inline fallback icon to avoid import issues
-function Monitor(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="14" x="2" y="3" rx="2" />
-      <line x1="8" x2="16" y1="21" y2="21" />
-      <line x1="12" x2="12" y1="17" y2="21" />
-    </svg>
   );
 }

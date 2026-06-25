@@ -13,6 +13,8 @@ import { downloadFileHandler } from './handlers/downloadFile';
 import { goToLinkHandler } from './handlers/goToLink';
 import { paginationHandler } from './handlers/pagination';
 import { loopLinksHandler } from './handlers/loopLinks';
+import { extractAttributeHandler } from './handlers/extractAttribute';
+import { extractListHandler } from './handlers/extractList';
 
 export async function runBot(botRun: any, prisma: PrismaClient) {
   const browser = await chromium.launch({ headless: true });
@@ -108,6 +110,12 @@ async function executeStep(step: any, context: ExecutionContext) {
       break;
     case 'EXTRACT_LINKS':
       await extractLinksHandler(step, context);
+      break;
+    case 'EXTRACT_ATTRIBUTE':
+      await extractAttributeHandler(step, context);
+      break;
+    case 'EXTRACT_LIST':
+      await extractListHandler(step, context);
       break;
     case 'SAVE_RECORD':
       await saveRecordHandler(step, context);

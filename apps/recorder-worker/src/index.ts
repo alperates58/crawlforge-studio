@@ -183,6 +183,33 @@ async function handleClientMessage(session: ActiveSession, msg: any) {
     });
 
     await page.mouse.click(x, y);
+  } else if (msg.action === 'extract_text') {
+    const { x, y } = msg;
+    const selectorInfo = await computeSelectorAt(page, x, y);
+    
+    await appendStep({
+      id: crypto.randomUUID(),
+      type: 'EXTRACT_TEXT',
+      parameters: { 
+        selector: selectorInfo.selector, 
+        field_name: `text_${session.recordedSteps.length}` 
+      }
+    });
+  } else if (msg.action === 'extract_attribute') {
+    const { x, y } = msg;
+    const selectorInfo = await computeSelectorAt(page, x, y);
+    const tagName = selectorInfo.tagName || 'IMG';
+    const attr = tagName === 'A' ? 'href' : 'src';
+    
+    await appendStep({
+      id: crypto.randomUUID(),
+      type: 'EXTRACT_ATTRIBUTE',
+      parameters: { 
+        selector: selectorInfo.selector, 
+        field_name: attr === 'href' ? `link_${session.recordedSteps.length}` : `image_${session.recordedSteps.length}`,
+        attribute: attr
+      }
+    });
   } else if (msg.action === 'type') {
     const { text } = msg;
     await appendStep({
@@ -214,20 +241,22 @@ async function computeSelectorAt(page: Page, x: number, y: number) {
   try {
     const result = await page.evaluate(({x, y}) => {
       const el = document.elementFromPoint(x, y) as HTMLElement;
-      if (!el) return { selector: 'body', weak: true };
+      if (!el) return { selector: 'body', weak: true, tagName: 'BODY' };
+
+      const tagName = el.tagName;
 
       // Priority: data-testid, id, name, aria-label, placeholder, text, css
-      if (el.getAttribute('data-testid')) return { selector: `[data-testid="${el.getAttribute('data-testid')}"]`, weak: false };
-      if (el.id) return { selector: `#${el.id}`, weak: false };
-      if (el.getAttribute('name')) return { selector: `[name="${el.getAttribute('name')}"]`, weak: false };
-      if (el.getAttribute('aria-label')) return { selector: `[aria-label="${el.getAttribute('aria-label')}"]`, weak: false };
-      if (el.getAttribute('placeholder')) return { selector: `[placeholder="${el.getAttribute('placeholder')}"]`, weak: false };
+      if (el.getAttribute('data-testid')) return { selector: `[data-testid="${el.getAttribute('data-testid')}"]`, weak: false, tagName };
+      if (el.id) return { selector: `#${el.id}`, weak: false, tagName };
+      if (el.getAttribute('name')) return { selector: `[name="${el.getAttribute('name')}"]`, weak: false, tagName };
+      if (el.getAttribute('aria-label')) return { selector: `[aria-label="${el.getAttribute('aria-label')}"]`, weak: false, tagName };
+      if (el.getAttribute('placeholder')) return { selector: `[placeholder="${el.getAttribute('placeholder')}"]`, weak: false, tagName };
       
       const text = el.innerText?.trim();
-      if (text && text.length > 0 && text.length < 30) {
+      if (text && text.length > 0 && text.length < 80) {
         // Just escape quotes for basic text selector
         const escaped = text.replace(/"/g, '\\"');
-        return { selector: `text="${escaped}"`, weak: false };
+        return { selector: `text="${escaped}"`, weak: false, tagName };
       }
 
       // CSS Fallback
@@ -240,20 +269,32 @@ async function computeSelectorAt(page: Page, x: number, y: number) {
           path = selector + (path ? ' > ' + path : '');
           break;
         } else {
-          let sibling = current;
-          let nth = 1;
-          while (sibling = sibling.previousElementSibling as HTMLElement) nth++;
-          if (nth > 1) selector += `:nth-child(${nth})`;
+          // Use class names if present
+          let hasClass = false;
+          if (current.className && typeof current.className === 'string') {
+            const classes = current.className.split(/\s+/).filter(c => c && !c.startsWith('hover:') && !c.startsWith('focus:') && !c.includes('swiper-slide-'));
+            if (classes.length > 0) {
+              selector += '.' + classes.join('.');
+              hasClass = true;
+            }
+          }
+          
+          if (!hasClass) {
+            let sibling = current;
+            let nth = 1;
+            while (sibling = sibling.previousElementSibling as HTMLElement) nth++;
+            if (nth > 1) selector += `:nth-child(${nth})`;
+          }
         }
         path = selector + (path ? ' > ' + path : '');
         current = current.parentElement;
       }
-      return { selector: path || 'body', weak: true };
+      return { selector: path || 'body', weak: false, tagName };
     }, { x, y });
 
     return result;
   } catch (err) {
-    return { selector: 'body', weak: true };
+    return { selector: 'body', weak: true, tagName: 'BODY' };
   }
 }
 

@@ -19,6 +19,8 @@ const STEP_TYPES: { type: StepType; label: string }[] = [
   { type: 'SCROLL', label: 'Scroll' },
   { type: 'EXTRACT_TEXT', label: 'Extract Text' },
   { type: 'EXTRACT_LINKS', label: 'Extract Links' },
+  { type: 'EXTRACT_ATTRIBUTE', label: 'Extract Attribute' },
+  { type: 'EXTRACT_LIST', label: 'Extract List/Grid' },
   { type: 'SAVE_RECORD', label: 'Save Record' },
   { type: 'DOWNLOAD_FILE', label: 'Download File' },
   { type: 'LOOP_LINKS', label: 'Loop Links' },
@@ -45,6 +47,8 @@ export default function StepList({
       case 'SCROLL': return `Scroll ${step.direction}`;
       case 'EXTRACT_TEXT': return step.field_name ? `Extract ${step.field_name}` : 'Extract Text';
       case 'EXTRACT_LINKS': return step.field_name ? `Extract links as ${step.field_name}` : 'Extract Links';
+      case 'EXTRACT_ATTRIBUTE': return step.field_name ? `Extract attr ${step.attribute || 'src'} as ${step.field_name}` : 'Extract Attribute';
+      case 'EXTRACT_LIST': return step.item_selector ? `Extract list from ${step.item_selector}` : 'Extract List/Grid';
       case 'SAVE_RECORD': return 'Save Record';
       case 'DOWNLOAD_FILE': return step.field_name ? `Download ${step.field_name}` : 'Download File';
       case 'LOOP_LINKS': return step.source_field ? `Loop over ${step.source_field}` : 'Loop Links';
@@ -63,6 +67,8 @@ export default function StepList({
       case 'WAIT': return !step.duration_ms || step.duration_ms <= 0;
       case 'EXTRACT_TEXT': return !step.field_name?.trim() || !step.selector?.trim();
       case 'EXTRACT_LINKS': return !step.field_name?.trim() || !step.selector?.trim();
+      case 'EXTRACT_ATTRIBUTE': return !step.field_name?.trim() || !step.selector?.trim() || !step.attribute?.trim();
+      case 'EXTRACT_LIST': return !step.item_selector?.trim() || !step.fields || step.fields.length === 0;
       case 'DOWNLOAD_FILE': return !step.selector?.trim() || !step.field_name?.trim() || !step.allowed_extensions?.trim();
       case 'LOOP_LINKS': return !step.source_field?.trim();
       case 'PAGINATION': return !step.next_selector?.trim();
