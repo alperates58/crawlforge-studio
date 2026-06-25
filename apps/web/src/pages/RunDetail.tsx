@@ -52,7 +52,18 @@ export default function RunDetail() {
 
   useEffect(() => {
     fetchRun();
-  }, [id]);
+
+    let intervalId: any = null;
+    if (run && (run.status === 'queued' || run.status === 'running')) {
+      intervalId = setInterval(() => {
+        fetchRun();
+      }, 2000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [id, run?.status]);
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (!run) return <div className="p-8">Run not found</div>;

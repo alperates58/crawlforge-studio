@@ -82,6 +82,13 @@ export async function runBot(botRun: any, prisma: PrismaClient) {
   try {
     const steps = botRun.bot.stepsJson ? JSON.parse(botRun.bot.stepsJson) : [];
     await context.executeSteps(steps, context);
+    
+    // Auto-save fallback if the user extracted data but forgot to add a SAVE_RECORD step
+    if (Object.keys(context.extractedData).length > 0) {
+      console.log('[Worker] Auto-saving remaining extracted data at the end of the run');
+      await saveRecordHandler({ type: 'SAVE_RECORD' }, context);
+    }
+    
     return context.stats;
   } finally {
     await browser.close();
