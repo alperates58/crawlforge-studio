@@ -18,7 +18,9 @@ import { extractListHandler } from './handlers/extractList';
 
 export async function runBot(botRun: any, prisma: PrismaClient) {
   const browser = await chromium.launch({ headless: true });
-  const browserContext = await browser.newContext();
+  const browserContext = await browser.newContext({
+    viewport: { width: 1920, height: 1080 }
+  });
   const page = await browserContext.newPage();
   
   const context: ExecutionContext = {

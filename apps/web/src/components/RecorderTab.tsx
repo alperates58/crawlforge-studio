@@ -22,6 +22,7 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
   const wsRef = useRef<WebSocket | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
@@ -128,6 +129,35 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
     wsRef.current.send(JSON.stringify({ action: 'scroll', deltaY: e.deltaY }));
   };
 
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (status !== 'running' || !wsRef.current) return;
+    if (recordMode === 'interact') return;
+
+    if (throttleTimeoutRef.current) return;
+
+    throttleTimeoutRef.current = setTimeout(() => {
+      throttleTimeoutRef.current = null;
+    }, 100);
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    wsRef.current.send(JSON.stringify({ action: 'hover', x, y, mode: recordMode }));
+  };
+
+  const handleCanvasMouseLeave = () => {
+    if (status !== 'running' || !wsRef.current) return;
+    if (recordMode === 'interact') return;
+    wsRef.current.send(JSON.stringify({ action: 'hover', x: -1, y: -1, mode: recordMode }));
+  };
+
   const handleSendType = () => {
     if (status !== 'running' || !wsRef.current || !typeText) return;
     wsRef.current.send(JSON.stringify({ action: 'type', text: typeText }));
@@ -177,6 +207,8 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
               ref={canvasRef} 
               onClick={handleCanvasClick}
               onWheel={handleCanvasWheel}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseLeave={handleCanvasMouseLeave}
               className="max-w-full max-h-full object-contain cursor-crosshair shadow-2xl rounded"
               style={{ minWidth: '800px', minHeight: '600px', backgroundColor: '#fff' }}
             />

@@ -85,7 +85,7 @@ wss.on('connection', async (ws, req) => {
     // Launch Playwright
     const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const context = await browser.newContext({
-      viewport: { width: 1280, height: 720 },
+      viewport: { width: 1920, height: 1080 },
       deviceScaleFactor: 1
     });
     const page = await context.newPage();
@@ -95,8 +95,8 @@ wss.on('connection', async (ws, req) => {
     await cdp.send('Page.startScreencast', {
       format: 'jpeg',
       quality: 60,
-      maxWidth: 1280,
-      maxHeight: 720,
+      maxWidth: 1920,
+      maxHeight: 1080,
       everyNthFrame: 1
     });
 
@@ -234,6 +234,54 @@ async function handleClientMessage(session: ActiveSession, msg: any) {
       parameters: { durationMs: duration }
     });
     await page.waitForTimeout(duration);
+  } else if (msg.action === 'hover') {
+    const { x, y, mode } = msg;
+    if (x < 0 || y < 0) {
+      await highlightElements(page, '', '');
+    } else {
+      const selectorInfo = await computeSelectorAt(page, x, y, true);
+      await highlightElements(page, selectorInfo.selector, mode);
+    }
+  }
+}
+
+async function highlightElements(page: Page, selector: string, mode: string) {
+  try {
+    await page.evaluate(({ selector, mode }) => {
+      const prev = document.querySelectorAll('.crawlforge-highlight');
+      prev.forEach(el => {
+        const htmlEl = el as HTMLElement;
+        htmlEl.classList.remove('crawlforge-highlight');
+        htmlEl.style.outline = '';
+        htmlEl.style.outlineOffset = '';
+        htmlEl.style.backgroundColor = '';
+        htmlEl.style.transition = '';
+      });
+
+      if (!selector || selector === 'body' || selector === 'html') return;
+
+      let color = '#4f46e5'; // Default Indigo
+      let bg = 'rgba(79, 70, 229, 0.1)';
+      if (mode === 'extract_text') {
+        color = '#3b82f6'; // Blue
+        bg = 'rgba(59, 130, 246, 0.15)';
+      } else if (mode === 'extract_attribute') {
+        color = '#10b981'; // Green
+        bg = 'rgba(16, 185, 129, 0.15)';
+      }
+
+      const targets = document.querySelectorAll(selector);
+      targets.forEach(el => {
+        const htmlEl = el as HTMLElement;
+        htmlEl.classList.add('crawlforge-highlight');
+        htmlEl.style.outline = `2px dashed ${color}`;
+        htmlEl.style.outlineOffset = '2px';
+        htmlEl.style.backgroundColor = bg;
+        htmlEl.style.transition = 'outline 0.15s ease, background-color 0.15s ease';
+      });
+    }, { selector, mode });
+  } catch (err) {
+    // Ignore errors on closed or loading pages
   }
 }
 
@@ -274,6 +322,9 @@ async function computeSelectorAt(page: Page, x: number, y: number, preferCss = f
       let path = '';
       let current: HTMLElement | null = el;
       while (current && current.nodeType === Node.ELEMENT_NODE) {
+        if (current.tagName === 'BODY' || current.tagName === 'HTML') {
+          break;
+        }
         let selector = current.nodeName.toLowerCase();
         
         // If the element has an ID, use it as an anchor, unless it's a dynamic/numeric ID and we prefer generic CSS
