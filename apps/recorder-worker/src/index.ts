@@ -266,7 +266,9 @@ async function computeSelectorAt(page: Page, x: number, y: number, preferCss = f
       let current: HTMLElement | null = el;
       while (current && current.nodeType === Node.ELEMENT_NODE) {
         let selector = current.nodeName.toLowerCase();
-        if (current.id) {
+        
+        // If the element has an ID, use it as an anchor, unless it's a dynamic/numeric ID and we prefer generic CSS
+        if (current.id && !(preferCss && /\d/.test(current.id))) {
           selector += `#${current.id}`;
           path = selector + (path ? ' > ' + path : '');
           break;
@@ -274,7 +276,20 @@ async function computeSelectorAt(page: Page, x: number, y: number, preferCss = f
           // Use class names if present
           let hasClass = false;
           if (current.className && typeof current.className === 'string') {
-            const classes = current.className.split(/\s+/).filter(c => c && !c.startsWith('hover:') && !c.startsWith('focus:') && !c.includes('swiper-slide-'));
+            const classes = current.className.split(/\s+/)
+              .filter(c => {
+                if (!c) return false;
+                // Exclude tailwind state modifiers and swiper slide indices
+                if (c.startsWith('hover:') || c.startsWith('focus:') || c.includes('swiper-slide-')) return false;
+                // Exclude class names containing numbers (often database IDs or layout column widths)
+                if (preferCss && /\d/.test(c)) return false;
+                // Exclude state and positional classes
+                const lower = c.toLowerCase();
+                const excludedClasses = ['first', 'last', 'even', 'odd', 'active', 'selected', 'current', 'focus', 'hover', 'disabled', 'enabled'];
+                if (excludedClasses.includes(lower)) return false;
+                return true;
+              });
+              
             if (classes.length > 0) {
               selector += '.' + classes.join('.');
               hasClass = true;
