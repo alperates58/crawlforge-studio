@@ -11,6 +11,7 @@ import { AiProviderService } from './services/AiProviderService';
 import cronParser from 'cron-parser';
 import rateLimit from 'express-rate-limit';
 import { KnowledgeGraphService } from './services/KnowledgeGraphService';
+import * as XLSX from 'xlsx';
 
 dotenv.config();
 
@@ -512,8 +513,12 @@ app.get('/api/datasets/export/csv', authenticateToken, async (req, res) => {
     const allColumns = [...fixedColumns, ...jsonColumns];
 
     // Set headers for streaming response
-    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="datasets.csv"');
+    
+    // Write UTF-8 BOM and separator definition for Excel compatibility
+    res.write('\ufeff');
+    res.write('sep=,\n');
     
     // Write CSV Header
     res.write(allColumns.join(',') + '\n');
@@ -567,6 +572,103 @@ app.get('/api/datasets/export/csv', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Export Error:', error);
     res.status(500).json({ error: 'Failed to export datasets' });
+  }
+});
+
+app.get('/api/datasets/export/excel', authenticateToken, async (req, res) => {
+  try {
+    const { search, projectId, botId, runId, status } = req.query;
+
+    const where: any = {};
+    if (projectId) where.projectId = projectId;
+    if (botId) where.botId = botId;
+    if (runId) where.runId = runId;
+    if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { sourceUrl: { contains: search as string, mode: 'insensitive' } },
+        { dataJson: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    // Pass 1: Collect unique JSON keys
+    const jsonKeys = new Set<string>();
+    const BATCH_SIZE = 500;
+    let skip = 0;
+    
+    while (true) {
+      const batch = await prisma.dataset.findMany({
+        where,
+        select: { dataJson: true },
+        skip,
+        take: BATCH_SIZE,
+        orderBy: { id: 'asc' }
+      });
+      if (batch.length === 0) break;
+      
+      for (const item of batch) {
+        if (item.dataJson) {
+          try {
+            const parsed = JSON.parse(item.dataJson);
+            Object.keys(parsed).forEach(k => jsonKeys.add(k));
+          } catch(e) {}
+        }
+      }
+      skip += BATCH_SIZE;
+    }
+
+    const jsonColumns = Array.from(jsonKeys);
+
+    // Pass 2: Fetch all rows for Excel conversion
+    const datasets = await prisma.dataset.findMany({
+      where,
+      include: {
+        project: { select: { name: true } },
+        bot: { select: { name: true } }
+      },
+      orderBy: { id: 'asc' }
+    });
+
+    const rows = datasets.map(item => {
+      let parsed: any = {};
+      if (item.dataJson) {
+        try {
+          parsed = JSON.parse(item.dataJson);
+        } catch(e) {}
+      }
+
+      const row: any = {
+        'Dataset ID': item.id,
+        'Project': item.project?.name || '',
+        'Bot': item.bot?.name || '',
+        'Run ID': item.runId || '',
+        'Source URL': item.sourceUrl || '',
+        'Status': item.status,
+        'Created At': new Date(item.createdAt).toLocaleString()
+      };
+
+      for (const col of jsonColumns) {
+        let val = parsed[col];
+        if (val === null || val === undefined) val = '';
+        if (typeof val === 'object') val = JSON.stringify(val);
+        row[col] = val;
+      }
+
+      return row;
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, "Datasets");
+
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="datasets_export_${Date.now()}.xlsx"`);
+    res.send(buf);
+  } catch (error) {
+    console.error('Excel Export Error:', error);
+    res.status(500).json({ error: 'Failed to export to Excel' });
   }
 });
 
