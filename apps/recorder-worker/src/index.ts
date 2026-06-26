@@ -240,8 +240,17 @@ async function handleClientMessage(session: ActiveSession, msg: any) {
 async function computeSelectorAt(page: Page, x: number, y: number, preferCss = false) {
   try {
     const result = await page.evaluate(({x, y, preferCss}: { x: number, y: number, preferCss: boolean }) => {
-      const el = document.elementFromPoint(x, y) as HTMLElement;
+      let el = document.elementFromPoint(x, y) as HTMLElement;
       if (!el) return { selector: 'body', weak: true, tagName: 'BODY' };
+
+      // Overlay resolver: if the clicked element is an empty div, try to find a sibling or child img inside its parent
+      if (preferCss && el.tagName === 'DIV' && !el.innerText?.trim()) {
+        const parent = el.parentElement;
+        if (parent) {
+          const img = parent.querySelector('img');
+          if (img) el = img;
+        }
+      }
 
       const tagName = el.tagName;
 
@@ -296,7 +305,7 @@ async function computeSelectorAt(page: Page, x: number, y: number, preferCss = f
             }
           }
           
-          if (!hasClass) {
+          if (!hasClass && !(preferCss && current.tagName !== 'BODY' && current.tagName !== 'HTML')) {
             let sibling = current;
             let nth = 1;
             while (sibling = sibling.previousElementSibling as HTMLElement) nth++;
