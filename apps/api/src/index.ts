@@ -431,11 +431,12 @@ app.get('/api/datasets', authenticateToken, async (req, res) => {
     const pageSize = parseInt(req.query.pageSize as string) || 50;
     const skip = (page - 1) * pageSize;
 
-    const { search, projectId, botId, status } = req.query;
+    const { search, projectId, botId, runId, status } = req.query;
 
     const where: any = {};
     if (projectId) where.projectId = projectId;
     if (botId) where.botId = botId;
+    if (runId) where.runId = runId;
     if (status) where.status = status;
     if (search) {
       where.OR = [
@@ -466,11 +467,12 @@ app.get('/api/datasets', authenticateToken, async (req, res) => {
 
 app.get('/api/datasets/export/csv', authenticateToken, async (req, res) => {
   try {
-    const { search, projectId, botId, status } = req.query;
+    const { search, projectId, botId, runId, status } = req.query;
 
     const where: any = {};
     if (projectId) where.projectId = projectId;
     if (botId) where.botId = botId;
+    if (runId) where.runId = runId;
     if (status) where.status = status;
     if (search) {
       where.OR = [

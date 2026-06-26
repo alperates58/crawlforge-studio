@@ -94,6 +94,18 @@ export default function Datasets() {
     );
   };
 
+  const jsonKeys = Array.from(
+    new Set(
+      datasets.flatMap(d => {
+        try {
+          return d.dataJson ? Object.keys(JSON.parse(d.dataJson)) : [];
+        } catch {
+          return [];
+        }
+      })
+    )
+  );
+
   return (
     <div className="flex flex-col h-full max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
@@ -148,6 +160,9 @@ export default function Datasets() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project / Bot</th>
+                {jsonKeys.map(key => (
+                  <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{key}</th>
+                ))}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source URL</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
@@ -156,9 +171,9 @@ export default function Datasets() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading datasets...</td></tr>
+                <tr><td colSpan={5 + jsonKeys.length} className="px-6 py-4 text-center text-sm text-gray-500">Loading datasets...</td></tr>
               ) : datasets.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No datasets found.</td></tr>
+                <tr><td colSpan={5 + jsonKeys.length} className="px-6 py-4 text-center text-sm text-gray-500">No datasets found.</td></tr>
               ) : (
                 datasets.map(dataset => (
                   <tr key={dataset.id} className="hover:bg-gray-50 transition-colors">
@@ -166,6 +181,28 @@ export default function Datasets() {
                       <div className="text-sm font-medium text-gray-900">{dataset.project?.name || 'Unknown Project'}</div>
                       <div className="text-sm text-gray-500">{dataset.bot?.name || 'Unknown Bot'}</div>
                     </td>
+                    {jsonKeys.map(key => {
+                      let val = '';
+                      try {
+                        const parsed = dataset.dataJson ? JSON.parse(dataset.dataJson) : {};
+                        val = parsed[key] !== undefined && parsed[key] !== null ? String(parsed[key]) : '';
+                      } catch {}
+                      
+                      const isImage = val.startsWith('http') && (val.includes('.jpg') || val.includes('.jpeg') || val.includes('.png') || val.includes('.webp') || val.includes('wp-content/uploads'));
+                      const isLink = val.startsWith('http') && !isImage;
+                      
+                      return (
+                        <td key={key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate" title={val}>
+                          {isImage ? (
+                            <img src={val} alt="extracted" className="h-10 w-10 object-cover rounded border" />
+                          ) : isLink ? (
+                            <a href={val} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">{val}</a>
+                          ) : (
+                            val
+                          )}
+                        </td>
+                      );
+                    })}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 max-w-xs truncate" title={dataset.sourceUrl || ''}>
                         {dataset.sourceUrl || 'N/A'}

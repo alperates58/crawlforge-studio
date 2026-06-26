@@ -34,7 +34,20 @@ export default function RunDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [run, setRun] = useState<Run | null>(null);
+  const [datasets, setDatasets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchDatasets = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/datasets?runId=${id}&pageSize=100`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDatasets(res.data.data || []);
+    } catch (err) {
+      console.error('Failed to fetch datasets for run', err);
+    }
+  };
 
   const fetchRun = async () => {
     try {
@@ -43,6 +56,7 @@ export default function RunDetail() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRun(res.data);
+      await fetchDatasets();
     } catch (err) {
       console.error(err);
     } finally {
@@ -67,6 +81,18 @@ export default function RunDetail() {
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (!run) return <div className="p-8">Run not found</div>;
+
+  const jsonKeys = Array.from(
+    new Set(
+      datasets.flatMap(d => {
+        try {
+          return d.dataJson ? Object.keys(JSON.parse(d.dataJson)) : [];
+        } catch {
+          return [];
+        }
+      })
+    )
+  );
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -183,6 +209,58 @@ export default function RunDetail() {
           )}
         </div>
       </div>
+
+      {/* Extracted Data Table */}
+      {datasets.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h2 className="font-semibold text-gray-900">Extracted Data ({datasets.length} items)</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  {jsonKeys.map(key => (
+                    <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{key}</th>
+                  ))}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source URL</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {datasets.map(dataset => (
+                  <tr key={dataset.id} className="hover:bg-gray-50 transition-colors">
+                    {jsonKeys.map(key => {
+                      let val = '';
+                      try {
+                        const parsed = dataset.dataJson ? JSON.parse(dataset.dataJson) : {};
+                        val = parsed[key] !== undefined && parsed[key] !== null ? String(parsed[key]) : '';
+                      } catch {}
+
+                      const isImage = val.startsWith('http') && (val.includes('.jpg') || val.includes('.jpeg') || val.includes('.png') || val.includes('.webp') || val.includes('wp-content/uploads'));
+                      const isLink = val.startsWith('http') && !isImage;
+
+                      return (
+                        <td key={key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate" title={val}>
+                          {isImage ? (
+                            <img src={val} alt="extracted" className="h-10 w-10 object-cover rounded border" />
+                          ) : isLink ? (
+                            <a href={val} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">{val}</a>
+                          ) : (
+                            val
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate" title={dataset.sourceUrl || ''}>
+                      <a href={dataset.sourceUrl || '#'} target="_blank" rel="noreferrer" className="hover:underline">{dataset.sourceUrl || 'N/A'}</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
