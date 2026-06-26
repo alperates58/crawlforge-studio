@@ -22,7 +22,7 @@ export default function RecorderTab({ botId, onAppendSteps, onReplaceSteps }: Re
   const wsRef = useRef<WebSocket | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const throttleTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     return () => {
