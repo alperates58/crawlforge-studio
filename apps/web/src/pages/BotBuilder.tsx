@@ -205,7 +205,21 @@ export default function BotBuilder() {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">{bot.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-gray-900">{bot.name}</h1>
+              <select
+                value={bot.status || 'draft'}
+                onChange={(e) => setBot({ ...bot, status: e.target.value })}
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border cursor-pointer focus:outline-none transition-colors ${
+                  bot.status === 'active' 
+                    ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' 
+                    : 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200'
+                }`}
+              >
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+              </select>
+            </div>
             <p className="text-sm text-gray-500">{bot.description || 'No description'}</p>
           </div>
         </div>

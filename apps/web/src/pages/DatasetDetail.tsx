@@ -43,7 +43,8 @@ export default function DatasetDetail() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/datasets/${id}/${status}`, {}, {
+      const action = status === 'approved' ? 'approve' : 'reject';
+      await axios.post(`${API_BASE_URL}/datasets/${id}/${action}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(`Dataset ${status}`);

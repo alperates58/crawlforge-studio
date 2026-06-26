@@ -185,7 +185,7 @@ async function handleClientMessage(session: ActiveSession, msg: any) {
     await page.mouse.click(x, y);
   } else if (msg.action === 'extract_text') {
     const { x, y } = msg;
-    const selectorInfo = await computeSelectorAt(page, x, y);
+    const selectorInfo = await computeSelectorAt(page, x, y, true);
     
     await appendStep({
       id: crypto.randomUUID(),
@@ -197,7 +197,7 @@ async function handleClientMessage(session: ActiveSession, msg: any) {
     });
   } else if (msg.action === 'extract_attribute') {
     const { x, y } = msg;
-    const selectorInfo = await computeSelectorAt(page, x, y);
+    const selectorInfo = await computeSelectorAt(page, x, y, true);
     const tagName = selectorInfo.tagName || 'IMG';
     const attr = tagName === 'A' ? 'href' : 'src';
     
@@ -237,9 +237,9 @@ async function handleClientMessage(session: ActiveSession, msg: any) {
   }
 }
 
-async function computeSelectorAt(page: Page, x: number, y: number) {
+async function computeSelectorAt(page: Page, x: number, y: number, preferCss = false) {
   try {
-    const result = await page.evaluate(({x, y}) => {
+    const result = await page.evaluate(({x, y, preferCss}) => {
       const el = document.elementFromPoint(x, y) as HTMLElement;
       if (!el) return { selector: 'body', weak: true, tagName: 'BODY' };
 
@@ -252,11 +252,13 @@ async function computeSelectorAt(page: Page, x: number, y: number) {
       if (el.getAttribute('aria-label')) return { selector: `[aria-label="${el.getAttribute('aria-label')}"]`, weak: false, tagName };
       if (el.getAttribute('placeholder')) return { selector: `[placeholder="${el.getAttribute('placeholder')}"]`, weak: false, tagName };
       
-      const text = el.innerText?.trim();
-      if (text && text.length > 0 && text.length < 80) {
-        // Just escape quotes for basic text selector
-        const escaped = text.replace(/"/g, '\\"');
-        return { selector: `text="${escaped}"`, weak: false, tagName };
+      if (!preferCss) {
+        const text = el.innerText?.trim();
+        if (text && text.length > 0 && text.length < 80) {
+          // Just escape quotes for basic text selector
+          const escaped = text.replace(/"/g, '\\"');
+          return { selector: `text="${escaped}"`, weak: false, tagName };
+        }
       }
 
       // CSS Fallback
@@ -290,7 +292,7 @@ async function computeSelectorAt(page: Page, x: number, y: number) {
         current = current.parentElement;
       }
       return { selector: path || 'body', weak: false, tagName };
-    }, { x, y });
+    }, { x, y, preferCss });
 
     return result;
   } catch (err) {

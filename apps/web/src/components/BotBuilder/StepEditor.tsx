@@ -178,6 +178,11 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
                   />
                   <label htmlFor="extract_all" className="text-sm text-gray-700 font-medium">Extract all matching elements (list mode)</label>
                 </div>
+                {((step as any).extract_all ?? true) && step.selector?.startsWith('text=') && (
+                  <div className="mt-2 p-2.5 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md text-xs leading-relaxed">
+                    <strong>Note:</strong> You are using list mode with a text selector (e.g. <code>text="..."</code>). This will only extract elements with this exact text. To extract similar elements (e.g. all product names), replace it with a CSS selector class like <code>.product-title</code>.
+                  </div>
+                )}
                 <div className="flex items-center gap-2 mt-2">
                   <input
                     type="checkbox"
@@ -252,6 +257,11 @@ export default function StepEditor({ step, onChange }: StepEditorProps) {
               />
               <label htmlFor="extract_all" className="text-sm text-gray-700 font-medium">Extract all matching elements (list mode)</label>
             </div>
+            {((step as any).extract_all ?? true) && step.selector?.startsWith('text=') && (
+              <div className="mt-2 p-2.5 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md text-xs leading-relaxed">
+                <strong>Note:</strong> You are using list mode with a text selector (e.g. <code>text="..."</code>). This will only extract elements with this exact text. To extract similar elements (e.g. all product details), replace it with a CSS selector class like <code>.product-card</code>.
+              </div>
+            )}
             <div className="flex items-center gap-2 mt-2">
               <input
                 type="checkbox"
