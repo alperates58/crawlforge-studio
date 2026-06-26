@@ -318,6 +318,68 @@ async function computeSelectorAt(page: Page, x: number, y: number, preferCss = f
         }
       }
 
+      // Try to find a semantic parent (e.g. product card container) and build a simple relative selector
+      if (preferCss) {
+        const isUtilityClass = (c: string) => {
+          const utils = [
+            'flex', 'grid', 'hidden', 'block', 'inline', 'relative', 'absolute', 'fixed', 'sticky',
+            'w-full', 'h-full', 'w-min', 'w-max', 'h-max', 'w-fit', 'h-fit', 'flex-col', 'flex-row',
+            'items-center', 'justify-center', 'antialiased', 'font-bold', 'font-semibold', 'font-medium',
+            'text-xs', 'text-sm', 'text-base', 'text-lg', 'text-xl', 'text-2xl', 'text-3xl', 'text-4xl',
+            'bg-white', 'bg-black', 'border', 'rounded', 'shadow', 'truncate', 'h-min', 'object-cover',
+            'h-max', 'w-max', 'flex-1', 'flex-auto', 'flex-initial', 'flex-none'
+          ];
+          if (utils.includes(c)) return true;
+          if (/^(p|m|px|py|pt|pb|pl|pr|mt|mb|ml|mr|bg|text|border|rounded|shadow|grid-cols|gap|w|h)-\w+/.test(c)) return true;
+          if (/^(w|h)-\d+/.test(c)) return true;
+          return false;
+        };
+
+        const isSemanticClass = (c: string) => {
+          if (isUtilityClass(c)) return false;
+          const keywords = ['product', 'item', 'card', 'row', 'cell', 'list', 'grid', 'post', 'entry', 'article', 'tile', 'thumb', 'box'];
+          const lower = c.toLowerCase();
+          return keywords.some(k => lower.includes(k));
+        };
+
+        let semanticAncestor: HTMLElement | null = null;
+        let temp: HTMLElement | null = el.parentElement;
+        while (temp && temp.tagName !== 'BODY' && temp.tagName !== 'HTML') {
+          if (temp.className && typeof temp.className === 'string') {
+            const classes = temp.className.split(/\s+/).filter(c => c && isSemanticClass(c));
+            if (classes.length > 0) {
+              semanticAncestor = temp;
+              break;
+            }
+          }
+          temp = temp.parentElement;
+        }
+
+        if (semanticAncestor) {
+          let baseSelector = semanticAncestor.tagName.toLowerCase();
+          const baseClasses = semanticAncestor.className.split(/\s+/).filter(c => c && isSemanticClass(c));
+          baseSelector += '.' + baseClasses.join('.');
+
+          let targetSelector = el.tagName.toLowerCase();
+          if (el.className && typeof el.className === 'string') {
+            const targetClasses = el.className.split(/\s+/)
+              .filter(c => c && !isUtilityClass(c) && !c.includes('hover:') && !c.includes('focus:'));
+            if (targetClasses.length > 0) {
+              targetSelector += '.' + targetClasses.join('.');
+            } else {
+              const targetClassesWithUtils = el.className.split(/\s+/)
+                .filter(c => c && !c.includes('hover:') && !c.includes('focus:'));
+              if (targetClassesWithUtils.length > 0) {
+                targetSelector += '.' + targetClassesWithUtils.slice(0, 2).join('.');
+              }
+            }
+          }
+
+          const combinedSelector = `${baseSelector} ${targetSelector}`;
+          return { selector: combinedSelector, weak: false, tagName };
+        }
+      }
+
       // CSS Fallback
       let path = '';
       let current: HTMLElement | null = el;
