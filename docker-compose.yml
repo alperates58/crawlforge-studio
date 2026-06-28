@@ -161,8 +161,24 @@ services:
       - api
     networks:
       - crawlforge_net
+      - coolify
     expose:
       - '3000'
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.crawlforge-web-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.crawlforge-web-http.entrypoints=http
+      - 'traefik.http.routers.crawlforge-web-http.rule=Host(`databot.alperates.com.tr`)'
+      - traefik.http.routers.crawlforge-web-http.middlewares=crawlforge-web-https-redirect,crowdsec@file
+      - traefik.http.routers.crawlforge-web-http.service=crawlforge-web
+      - traefik.http.routers.crawlforge-web.entrypoints=https
+      - 'traefik.http.routers.crawlforge-web.rule=Host(`databot.alperates.com.tr`)'
+      - traefik.http.routers.crawlforge-web.middlewares=crowdsec@file
+      - traefik.http.routers.crawlforge-web.service=crawlforge-web
+      - traefik.http.routers.crawlforge-web.tls=true
+      - traefik.http.routers.crawlforge-web.tls.certresolver=letsencrypt
+      - traefik.http.services.crawlforge-web.loadbalancer.server.port=3000
+      - traefik.docker.network=coolify
 
 volumes:
   postgres_data:
