@@ -168,11 +168,13 @@ services:
       - traefik.enable=true
       - traefik.http.middlewares.crawlforge-web-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.crawlforge-web-http.entrypoints=http
-      - 'traefik.http.routers.crawlforge-web-http.rule=Host(`databot.alperates.com.tr`)'
+      - 'traefik.http.routers.crawlforge-web-http.rule=Host(`databot.alperates.com.tr`) && PathPrefix(`/`)'
+      - traefik.http.routers.crawlforge-web-http.priority=200
       - traefik.http.routers.crawlforge-web-http.middlewares=crawlforge-web-https-redirect,crowdsec@file
       - traefik.http.routers.crawlforge-web-http.service=crawlforge-web
       - traefik.http.routers.crawlforge-web.entrypoints=https
-      - 'traefik.http.routers.crawlforge-web.rule=Host(`databot.alperates.com.tr`)'
+      - 'traefik.http.routers.crawlforge-web.rule=Host(`databot.alperates.com.tr`) && PathPrefix(`/`)'
+      - traefik.http.routers.crawlforge-web.priority=200
       - traefik.http.routers.crawlforge-web.middlewares=crowdsec@file
       - traefik.http.routers.crawlforge-web.service=crawlforge-web
       - traefik.http.routers.crawlforge-web.tls=true
